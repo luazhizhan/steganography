@@ -18,7 +18,7 @@ const Home: NextPage = () => {
   return (
     <div className={styles.container}>
       <nav className={styles.nav}>
-        <h1>Stenography</h1>
+        <h1>Steganography</h1>
       </nav>
       <div className={styles.content}>
         <div className={styles.tabs}>
