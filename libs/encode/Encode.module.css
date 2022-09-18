@@ -1,0 +1,109 @@
+/* Container */
+
+.container {
+  display: flex;
+  gap: 1%;
+}
+
+.container > section {
+  display: flex;
+  flex-direction: column;
+  min-width: 49.5%;
+  margin-top: 10px;
+  gap: 5px;
+}
+
+.container > section button {
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.container > section button:hover {
+  opacity: 0.8;
+}
+
+.title {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.title > div {
+  display: flex;
+  gap: 5px;
+}
+
+/* Payload */
+
+.form > button {
+  background-color: #222222;
+  color: white;
+}
+
+.form > button:disabled {
+  background-color: lightgray;
+  color: black;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Source */
+
+.source div clearBtn {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.source div a {
+  background-color: #2e8dd1;
+  color: white;
+  border-radius: 5px;
+  padding: 6px 12px;
+  height: 35px;
+  cursor: pointer;
+  align-self: center;
+}
+
+.source div a :hover {
+  opacity: 0.8;
+}
+
+.source div button:last-of-type {
+  background-color: #222222;
+  color: white;
+}
+
+/* Encode sources display */
+
+.sources {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+}
+
+.sources > div {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  text-align: center;
+  font-size: 18px;
+}
+
+@media screen and (max-device-width: 900px) {
+  .container {
+    display: block;
+  }
+
+  .sources {
+    flex-direction: column;
+  }
+
+  .sources img {
+    max-height: 500px;
+  }
+}

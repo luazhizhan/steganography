@@ -1,0 +1,12 @@
+.dropzone {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px dashed black;
+  height: 260px;
+  cursor: pointer;
+}
+
+.dropzone:hover {
+  background-color: #f6f6f6;
+}

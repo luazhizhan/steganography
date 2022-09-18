@@ -1,0 +1,45 @@
+.container {
+  display: grid;
+  gap: 10px;
+}
+
+/* Navigation bar */
+
+.nav {
+  padding: 10px;
+  background-color: black;
+  color: white;
+}
+
+.content {
+  margin: 0px 5px 20px;
+}
+
+/* Encode/Decode Tabs */
+
+.tabs {
+  display: flex;
+}
+
+.tab {
+  width: 100%;
+  padding: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: center;
+}
+
+.tab.active {
+  background-color: black;
+  color: white;
+  border: 0.5px solid rgba(0, 0, 0, 0.3);
+  font-weight: 500;
+  border-bottom-color: transparent;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+}
+
+.tab.inactive {
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.3);
+}

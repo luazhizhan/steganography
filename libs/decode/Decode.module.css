@@ -1,0 +1,81 @@
+.container {
+  display: flex;
+  gap: 1%;
+}
+
+.container > section {
+  display: flex;
+  flex-direction: column;
+  min-width: 49.5%;
+  margin-top: 10px;
+  gap: 5px;
+}
+
+.container > section button {
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.container > section button:hover {
+  opacity: 0.8;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+/* Source */
+
+.source div clearBtn {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+/* Payload */
+
+.form > button {
+  background-color: #222222;
+  color: white;
+}
+
+.decodebtn {
+  background-color: #222222;
+  color: white;
+}
+
+/* Encode sources display */
+
+.images {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+}
+
+.images > div {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  text-align: center;
+  font-size: 18px;
+}
+
+@media screen and (max-device-width: 900px) {
+  .container {
+    display: block;
+  }
+
+  .images {
+    flex-direction: column;
+  }
+
+  .images img {
+    max-height: 500px;
+  }
+}
