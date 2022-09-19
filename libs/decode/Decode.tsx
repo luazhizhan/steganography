@@ -92,28 +92,34 @@ function Decode(): JSX.Element {
   const onDecode = async (): Promise<void> => {
     if (!state.source.data) return alert('Please select an image')
 
-    // Convert base64 to blob
-    const convertRes = await fetch(state.source.data)
-    const file = await convertRes.blob()
+    try {
+      dispatch({ type: 'SET_LOADING', loading: true })
 
-    // Encode image
-    const bodyData = new FormData()
-    bodyData.append('lsb', state.payload.bits.toString())
-    bodyData.append('file', file)
-    const decodeRes = await fetch('/api/decode/text-from-image', {
-      method: 'POST',
-      body: bodyData,
-    })
-    if (!decodeRes.ok) {
-      const error = await decodeRes.json()
-      return alert(error.message)
+      // Convert base64 to blob
+      const convertRes = await fetch(state.source.data)
+      const file = await convertRes.blob()
+
+      // Decode image
+      const bodyData = new FormData()
+      bodyData.append('lsb', state.payload.bits.toString())
+      bodyData.append('file', file)
+      const decodeRes = await fetch('/api/decode/text-from-image', {
+        method: 'POST',
+        body: bodyData,
+      })
+      if (!decodeRes.ok) {
+        const error = await decodeRes.json()
+        return alert(error.message)
+      }
+
+      const data = await decodeRes.json()
+      dispatch({
+        type: 'SET_PAYLOAD_DATA',
+        data: data.text,
+      })
+    } finally {
+      dispatch({ type: 'SET_LOADING', loading: false })
     }
-
-    const data = await decodeRes.json()
-    dispatch({
-      type: 'SET_PAYLOAD_DATA',
-      data: data.text,
-    })
   }
   return (
     <div className={styles.container}>
