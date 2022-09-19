@@ -11,8 +11,13 @@ function BitsSelect(props: Props): JSX.Element {
   return (
     <div>
       <span>Bits: </span>
-      <select name="bits" id="bits" onChange={onChange} value={value}>
-        <option value={0}>0</option>
+      <select
+        name="bits"
+        id="bits"
+        onChange={onChange}
+        value={value}
+        style={{ width: '35px', textAlign: 'center' }}
+      >
         <option value={1}>1</option>
         <option value={2}>2</option>
         <option value={3}>3</option>
@@ -20,6 +25,7 @@ function BitsSelect(props: Props): JSX.Element {
         <option value={5}>5</option>
         <option value={6}>6</option>
         <option value={7}>7</option>
+        <option value={8}>8</option>
       </select>
     </div>
   )

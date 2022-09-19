@@ -28,7 +28,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 400;
 }
 
@@ -53,9 +53,21 @@
 
 /* Source */
 
-.source div clearBtn {
+.clearBtn {
   padding: 6px 12px;
   cursor: pointer;
+}
+
+.encodeBtn {
+  background-color: #222222;
+  color: white;
+}
+
+.encodeBtn:disabled {
+  background-color: lightgray;
+  color: black;
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .source div a {
@@ -70,11 +82,6 @@
 
 .source div a :hover {
   opacity: 0.8;
-}
-
-.source div button:last-of-type {
-  background-color: #222222;
-  color: white;
 }
 
 /* Encode sources display */

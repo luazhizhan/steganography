@@ -26,7 +26,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 400;
 }
 
@@ -49,6 +49,12 @@
   color: white;
 }
 
+.decodebtn:disabled {
+  background-color: lightgray;
+  color: black;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
 /* Encode sources display */
 
 .images {

@@ -1,7 +1,7 @@
 import { ChangeEvent, useReducer } from 'react'
 import BitsSelect from '../../components/BitsSelect'
 import Dropzone from '../../components/Dropzone'
-import { Bits, BITS_STORED, Data, DELIMITER } from '../helper'
+import { Bits, blobToBase64, Data } from '../helper'
 import styles from './Encode.module.css'
 
 type State = {
@@ -29,6 +29,7 @@ type Action =
     }
   | { type: 'SET_SOURCE_ENCODED_DATA'; data: Data }
   | { type: 'CLEAR_SOURCE' }
+  | { type: 'SET_LOADING'; loading: boolean }
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -81,12 +82,18 @@ function reducer(state: State, action: Action): State {
         },
       }
     }
+    case 'SET_LOADING': {
+      return {
+        ...state,
+        loading: action.loading,
+      }
+    }
   }
 }
 
 function Encode(): JSX.Element {
   const [state, dispatch] = useReducer(reducer, {
-    payload: { type: 'message', bits: 0, data: null },
+    payload: { type: 'message', bits: 1, data: null },
     source: {
       type: 'image/*',
       name: null,
@@ -107,85 +114,41 @@ function Encode(): JSX.Element {
     dispatch({ type: 'SET_PAYLOAD_DATA', data })
   }
 
-  const onEncode = (): void => {
-    if (!state.payload.data || !state.source.original) return
-
-    // Create image element
-    const image = new Image()
-    image.src = state.source.original
-    const shadowCanvas = document.createElement('canvas')
-    const shadowCtx = shadowCanvas.getContext('2d')
-
-    if (!shadowCtx) return
-
-    // Get image data using shadow canvas
-    shadowCanvas.style.display = 'none'
-    shadowCanvas.width = image.width
-    shadowCanvas.height = image.height
-    shadowCtx.globalAlpha = 1
-    shadowCtx.drawImage(image, 0, 0, image.width, image.height)
-    const imageData = shadowCtx.getImageData(0, 0, image.width, image.height)
-
-    // Get payload data with delimiter in binary
-    const payloadBinary = `${DELIMITER}${state.payload.data}${DELIMITER}`
-      .split('')
-      .map((c) => c.charCodeAt(0).toString(2).padStart(BITS_STORED, '0'))
-
-    // Get size of payload and image data
-    const payloadLength = payloadBinary.join('').length
-    const limit = (imageData.data.length * (state.payload.bits + 1)) / 4
-
-    // Error if payload is too big
-    if (limit < payloadLength) {
-      const diff = Math.ceil((payloadLength - limit) / 8)
-      alert(
-        `Payload too big (by ${diff}bytes). Increase bits or change your payload.`
-      )
-      return
+  const onEncode = async (): Promise<void> => {
+    if (!state.payload.data || !state.source.original) {
+      return alert('Please select a file and enter a message')
     }
 
-    let payloadIndex = 0
-    let sourceIndex = 0
-    while (payloadIndex < payloadBinary.length) {
-      // Get payload bits data
-      const payloadBits = payloadBinary[payloadIndex++].split('')
-      let payloadBitsIndex = 0
+    try {
+      dispatch({ type: 'SET_LOADING', loading: true })
 
-      // Store bits according to bits option in image data
-      while (payloadBitsIndex < payloadBits.length) {
-        // User specified bits size to store for current image pixel
-        let bitsLeft = state.payload.bits
+      // Convert base64 to blob
+      const convertRes = await fetch(state.source.original)
+      const file = await convertRes.blob()
 
-        // Convert image pixel to bits
-        const sourceBitsBinary = imageData.data[sourceIndex]
-          .toString(2)
-          .split('')
-        // Store bits in image pixel
-        let sourceBitsIndex = sourceBitsBinary.length - 1
-        while (
-          bitsLeft >= 0 &&
-          sourceBitsIndex >= 0 &&
-          payloadBitsIndex < payloadBits.length
-        ) {
-          sourceBitsBinary[sourceBitsIndex--] = payloadBits[payloadBitsIndex++]
-          bitsLeft--
-        }
-
-        // Convert image pixel back to decimal and replace existing pixel in image data
-        imageData.data[sourceIndex] = parseInt(sourceBitsBinary.join(''), 2)
-        sourceIndex += 4
+      // Encode image
+      const bodyData = new FormData()
+      bodyData.append('lsb', state.payload.bits.toString())
+      bodyData.append('file', file)
+      bodyData.append('text', state.payload.data)
+      const encodeRes = await fetch('/api/encode/text-to-image', {
+        method: 'POST',
+        body: bodyData,
+      })
+      if (!encodeRes.ok) {
+        const error = await encodeRes.json()
+        return alert(error.message)
       }
+      const receiveFile = await encodeRes.blob()
+
+      // To base64
+      const data = await blobToBase64(receiveFile)
+      if (data instanceof Error) return
+
+      dispatch({ type: 'SET_SOURCE_ENCODED_DATA', data })
+    } finally {
+      dispatch({ type: 'SET_LOADING', loading: false })
     }
-
-    // Update canvas shadow with new image data
-    shadowCtx.putImageData(imageData, 0, 0)
-
-    dispatch({
-      type: 'SET_SOURCE_ENCODED_DATA',
-      data: shadowCanvas.toDataURL(),
-    })
-    image.remove()
-    shadowCanvas.remove()
   }
 
   return (
@@ -218,7 +181,13 @@ function Encode(): JSX.Element {
               </button>
             )}
             {state.source.original && (
-              <button onClick={onEncode}>Encode</button>
+              <button
+                onClick={onEncode}
+                className={styles.encodeBtn}
+                disabled={state.loading}
+              >
+                {state.loading ? 'Encoding...' : 'Encode'}
+              </button>
             )}
             {state.source.encoded && (
               <a

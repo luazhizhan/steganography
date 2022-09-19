@@ -1,7 +1,7 @@
 import { ChangeEvent, useReducer } from 'react'
 import BitsSelect from '../../components/BitsSelect'
 import Dropzone from '../../components/Dropzone'
-import { Bits, BITS_STORED, Data, DELIMITER } from '../helper'
+import { Bits, Data } from '../helper'
 import styles from './Decode.module.css'
 
 type State = {
@@ -23,6 +23,7 @@ type Action =
   | { type: 'SET_PAYLOAD_DATA'; data: Data }
   | { type: 'SET_SOURCE_DATA'; data: Data; name: string }
   | { type: 'CLEAR' }
+  | { type: 'SET_LOADING'; loading: boolean }
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -69,12 +70,18 @@ function reducer(state: State, action: Action): State {
         },
       }
     }
+    case 'SET_LOADING': {
+      return {
+        ...state,
+        loading: action.loading,
+      }
+    }
   }
 }
 
 function Decode(): JSX.Element {
   const [state, dispatch] = useReducer(reducer, {
-    payload: { type: 'message', bits: 0, data: null },
+    payload: { type: 'message', bits: 1, data: null },
     source: { type: 'image/*', name: null, data: null },
     loading: false,
   })
@@ -82,79 +89,31 @@ function Decode(): JSX.Element {
   const onBitsChange = (e: ChangeEvent<HTMLSelectElement>): void =>
     dispatch({ type: 'SET_BITS', bits: parseInt(e.target.value) as Bits })
 
-  const onDecode = (): void => {
-    if (!state.source.data) return
+  const onDecode = async (): Promise<void> => {
+    if (!state.source.data) return alert('Please select an image')
 
-    // Create image element
-    const image = new Image()
-    image.src = state.source.data
-    const shadowCanvas = document.createElement('canvas')
-    const shadowCtx = shadowCanvas.getContext('2d')
-    if (!shadowCtx) return
+    // Convert base64 to blob
+    const convertRes = await fetch(state.source.data)
+    const file = await convertRes.blob()
 
-    // Get image data using shadow canvas
-    shadowCanvas.style.display = 'none'
-    shadowCanvas.width = image.width
-    shadowCanvas.height = image.height
-    shadowCtx.globalAlpha = 1
-    shadowCtx.drawImage(image, 0, 0, image.width, image.height)
-    const imageData = shadowCtx.getImageData(0, 0, image.width, image.height)
-
-    let sourceIndex = 0
-    let payload = ''
-    let invalid = false
-    let found = false
-    while (sourceIndex < imageData.data.length) {
-      let binaryChar = ''
-      while (binaryChar.length < BITS_STORED) {
-        // User specified bits size to store for current image pixel
-        let bitsLeft = state.payload.bits
-
-        // Convert image pixel to binary
-        const sourceBitsBinary = imageData.data[sourceIndex]
-          .toString(2)
-          .split('')
-        sourceIndex += 4
-
-        // Get bit from from the back of the image pixel binary
-        let sourceBitsIndex = sourceBitsBinary.length - 1
-        while (
-          bitsLeft >= 0 &&
-          sourceBitsIndex >= 0 &&
-          binaryChar.length < BITS_STORED
-        ) {
-          binaryChar += sourceBitsBinary[sourceBitsIndex--]
-          bitsLeft--
-        }
-      }
-      payload += String.fromCharCode(parseInt(binaryChar, 2))
-
-      if (payload.length === 3 && payload !== DELIMITER) {
-        invalid = true
-        break
-      }
-      if (
-        payload.length > 3 &&
-        payload.substring(payload.length - 3) === DELIMITER
-      ) {
-        found = true
-        break
-      }
+    // Encode image
+    const bodyData = new FormData()
+    bodyData.append('lsb', state.payload.bits.toString())
+    bodyData.append('file', file)
+    const decodeRes = await fetch('/api/decode/text-from-image', {
+      method: 'POST',
+      body: bodyData,
+    })
+    if (!decodeRes.ok) {
+      const error = await decodeRes.json()
+      return alert(error.message)
     }
 
-    if (invalid) return alert('Invalid image or bit size given.')
-    if (!found) {
-      return alert(
-        'No payload found. Ensure that bit size specified is correct'
-      )
-    }
-
+    const data = await decodeRes.json()
     dispatch({
       type: 'SET_PAYLOAD_DATA',
-      data: payload.substring(3, payload.length - 3),
+      data: data.text,
     })
-    image.remove()
-    shadowCanvas.remove()
   }
   return (
     <div className={styles.container}>
@@ -170,8 +129,12 @@ function Decode(): JSX.Element {
             </button>
           )}
           {state.source.data && (
-            <button className={styles.decodebtn} onClick={onDecode}>
-              Decode
+            <button
+              className={styles.decodebtn}
+              onClick={onDecode}
+              disabled={state.loading}
+            >
+              {state.loading ? 'Decoding...' : 'Decode'}
             </button>
           )}
         </div>
@@ -180,8 +143,7 @@ function Decode(): JSX.Element {
           <Dropzone
             accept={{
               'image/png': [],
-              'image/jpg': [],
-              'image/jpeg': [],
+              'image/bmp': [],
             }}
             onDrop={(acceptedFiles) => {
               acceptedFiles.map((file) => {
