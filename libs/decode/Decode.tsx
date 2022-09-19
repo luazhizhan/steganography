@@ -1,7 +1,7 @@
 import { ChangeEvent, useReducer } from 'react'
 import BitsSelect from '../../components/BitsSelect'
 import Dropzone from '../../components/Dropzone'
-import { Bits, Data } from '../helper'
+import { accept, Bits, Data } from '../helper'
 import styles from './Decode.module.css'
 
 type State = {
@@ -141,10 +141,7 @@ function Decode(): JSX.Element {
         <BitsSelect value={state.payload.bits} onChange={onBitsChange} />
         {!state.source.data && (
           <Dropzone
-            accept={{
-              'image/png': [],
-              'image/bmp': [],
-            }}
+            accept={accept}
             onDrop={(acceptedFiles) => {
               acceptedFiles.map((file) => {
                 const reader = new FileReader()
