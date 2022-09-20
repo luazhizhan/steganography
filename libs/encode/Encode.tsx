@@ -1,12 +1,24 @@
-import { ChangeEvent, useReducer } from 'react'
-import BitsSelect from '../../components/BitsSelect'
-import Dropzone from '../../components/Dropzone'
-import { accept, Bits, blobToBase64, Data } from '../helper'
+import { ChangeEvent, lazy, useReducer } from 'react'
+import BitsSelect from '../components/BitsSelect'
+import Dropzone from '../components/Dropzone'
+import {
+  acceptPayload,
+  acceptSource,
+  Bits,
+  blobToBase64,
+  Data,
+  PayloadMineTypes,
+  Payloads,
+} from '../helper'
 import styles from './Encode.module.css'
+
+// Must be lazily imported as this requires window object
+const DocViewer = lazy(() => import('../components/Viewer'))
 
 type State = {
   payload: {
-    type: 'message'
+    type: Payloads
+    mineType: PayloadMineTypes
     bits: Bits
     data: Data
   }
@@ -21,7 +33,8 @@ type State = {
 
 type Action =
   | { type: 'SET_BITS'; bits: Bits }
-  | { type: 'SET_PAYLOAD_DATA'; data: Data }
+  | { type: 'SET_PAYLOAD_TYPE'; payloadType: Payloads }
+  | { type: 'SET_PAYLOAD_DATA'; data: Data; mineType: PayloadMineTypes }
   | {
       type: 'SET_SOURCE_ORIGINAL_DATA'
       data: string
@@ -42,12 +55,24 @@ function reducer(state: State, action: Action): State {
         },
       }
     }
+    case 'SET_PAYLOAD_TYPE': {
+      return {
+        ...state,
+        payload: {
+          ...state.payload,
+          type: action.payloadType,
+          mineType: null,
+          data: null,
+        },
+      }
+    }
     case 'SET_PAYLOAD_DATA': {
       return {
         ...state,
         payload: {
           ...state.payload,
           data: action.data,
+          mineType: action.mineType,
         },
       }
     }
@@ -93,7 +118,7 @@ function reducer(state: State, action: Action): State {
 
 function Encode(): JSX.Element {
   const [state, dispatch] = useReducer(reducer, {
-    payload: { type: 'message', bits: 1, data: null },
+    payload: { type: 'message', mineType: null, bits: 1, data: null },
     source: {
       type: 'image/*',
       name: null,
@@ -103,15 +128,16 @@ function Encode(): JSX.Element {
     loading: false,
   })
 
-  const onBitsChange = (e: ChangeEvent<HTMLSelectElement>): void =>
+  const onBitsChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     dispatch({ type: 'SET_BITS', bits: parseInt(e.target.value) as Bits })
+  }
 
-  const onPayloadDataChange = (e: ChangeEvent<HTMLTextAreaElement>): void => {
+  const onMsgPayloadChange = (e: ChangeEvent<HTMLTextAreaElement>): void => {
     const data = ((): string | null => {
       if (!e.target.value.trim()) return null
       return e.target.value
     })()
-    dispatch({ type: 'SET_PAYLOAD_DATA', data })
+    dispatch({ type: 'SET_PAYLOAD_DATA', data, mineType: null })
   }
 
   const onEncode = async (): Promise<void> => {
@@ -126,22 +152,34 @@ function Encode(): JSX.Element {
       const convertRes = await fetch(state.source.original)
       const file = await convertRes.blob()
 
+      // Get correct payload data format
+      const payloadData = state.payload.data
+      const payload = await (async () => {
+        if (state.payload.type === 'message') {
+          return payloadData
+        }
+        const payloadConvertRes = await fetch(payloadData)
+        return payloadConvertRes.blob()
+      })()
+
       // Encode image
       const bodyData = new FormData()
       bodyData.append('lsb', state.payload.bits.toString())
       bodyData.append('file', file)
-      bodyData.append('text', state.payload.data)
-      const encodeRes = await fetch('/api/encode/text-to-image', {
+      bodyData.append('payload', payload)
+      const encodeRes = await fetch('/api/encode/to-image', {
         method: 'POST',
         body: bodyData,
       })
+
+      // Throw error if not 200
       if (!encodeRes.ok) {
         const error = await encodeRes.json()
         return alert(error.message)
       }
       const receiveFile = await encodeRes.blob()
 
-      // To base64
+      // To base64 data
       const data = await blobToBase64(receiveFile)
       if (data instanceof Error) return
 
@@ -153,22 +191,76 @@ function Encode(): JSX.Element {
 
   return (
     <div className={styles.container}>
+      {/* Payload section */}
       <section className={styles.payload}>
         <span className={styles.title}>Payload </span>
+
+        {/* Payload type selection */}
         <div className={styles.form}>
           <span>Type: </span>
-          <button>Message</button>
+          <button
+            className={state.payload.type === 'message' ? styles.selected : ''}
+            onClick={(): void =>
+              dispatch({ type: 'SET_PAYLOAD_TYPE', payloadType: 'message' })
+            }
+          >
+            Message
+          </button>
+          <button
+            className={state.payload.type === 'file' ? styles.selected : ''}
+            onClick={(): void =>
+              dispatch({ type: 'SET_PAYLOAD_TYPE', payloadType: 'file' })
+            }
+          >
+            File
+          </button>
         </div>
         <BitsSelect value={state.payload.bits} onChange={onBitsChange} />
-        <textarea
-          onChange={onPayloadDataChange}
-          name="message"
-          id="message"
-          cols={30}
-          rows={10}
-        ></textarea>
+
+        {/* Text payload message */}
+        {state.payload.type === 'message' && (
+          <textarea
+            onChange={onMsgPayloadChange}
+            value={state.payload.data || ''}
+            name="message"
+            id="message"
+            cols={30}
+            rows={10}
+          ></textarea>
+        )}
+
+        {/* Upload file payload */}
+        {state.payload.type === 'file' && !state.payload.data && (
+          <Dropzone
+            accept={acceptPayload}
+            onDrop={(acceptedFiles) => {
+              acceptedFiles.map((file) => {
+                const reader = new FileReader()
+                reader.onload = function (e) {
+                  if (e.target == null) return
+                  if (typeof e.target.result !== 'string') return
+                  dispatch({
+                    type: 'SET_PAYLOAD_DATA',
+                    data: e.target.result,
+                    mineType: file.type as PayloadMineTypes,
+                  })
+                }
+                reader.readAsDataURL(file)
+                return file
+              })
+            }}
+          />
+        )}
+
+        {/* File payload viewer */}
+        {state.payload.type === 'file' && state.payload.data && (
+          <DocViewer data={state.payload.data} />
+        )}
       </section>
+
+      {/* Source section */}
       <section className={styles.source}>
+        {/* Encode and download file */}
         <div className={styles.title}>
           <span>Source</span>
           <div>
@@ -199,9 +291,11 @@ function Encode(): JSX.Element {
             )}
           </div>
         </div>
+
+        {/* Source file upload */}
         {!state.source.original && (
           <Dropzone
-            accept={accept}
+            accept={acceptSource}
             onDrop={(acceptedFiles) => {
               acceptedFiles.map((file) => {
                 const reader = new FileReader()
@@ -220,18 +314,20 @@ function Encode(): JSX.Element {
             }}
           />
         )}
+
+        {/* Original and encoded file comparison */}
         <div className={styles.sources}>
           {state.source.original && (
             <div>
               <span>Original</span>
-              {/* eslint-disable @next/next/no-img-element */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={state.source.original} alt="Uploaded image" />
             </div>
           )}
           {state.source.encoded && (
             <div>
               <span>Encoded</span>
-              {/* eslint-disable @next/next/no-img-element */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={state.source.encoded} alt="Encoded image" />
             </div>
           )}

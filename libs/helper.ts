@@ -2,7 +2,23 @@ export type Bits = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
 
 export type Data = string | null
 
-export const accept = {
+export type Payloads = 'message' | 'file'
+
+export type PayloadMineTypes =
+  | null
+  | 'image/png'
+  | 'image/bmp'
+  | 'application/pdf'
+  | 'application/msword'
+
+export const acceptPayload = {
+  'image/png': [],
+  'image/bmp': [],
+  'application/pdf': [],
+  'application/msword': [],
+}
+
+export const acceptSource = {
   'image/png': [],
   'image/bmp': [],
 }

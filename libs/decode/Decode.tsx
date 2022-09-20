@@ -1,12 +1,23 @@
-import { ChangeEvent, useReducer } from 'react'
-import BitsSelect from '../../components/BitsSelect'
-import Dropzone from '../../components/Dropzone'
-import { accept, Bits, Data } from '../helper'
+import { ChangeEvent, lazy, useReducer } from 'react'
+import BitsSelect from '../components/BitsSelect'
+import Dropzone from '../components/Dropzone'
+import {
+  acceptSource,
+  Bits,
+  blobToBase64,
+  Data,
+  PayloadMineTypes,
+  Payloads,
+} from '../helper'
 import styles from './Decode.module.css'
+
+// Must be lazily imported as this requires window object
+const DocViewer = lazy(() => import('../components/Viewer'))
 
 type State = {
   payload: {
-    type: 'message'
+    type: Payloads
+    mineType: PayloadMineTypes
     bits: Bits
     data: Data
   }
@@ -20,7 +31,9 @@ type State = {
 
 type Action =
   | { type: 'SET_BITS'; bits: Bits }
-  | { type: 'SET_PAYLOAD_DATA'; data: Data }
+  | { type: 'SET_PAYLOAD_TYPE'; payloadType: Payloads }
+  | { type: 'SET_PAYLOAD_MINE_TYPE'; mineType: PayloadMineTypes }
+  | { type: 'SET_PAYLOAD_DATA'; data: Data; mineType: PayloadMineTypes }
   | { type: 'SET_SOURCE_DATA'; data: Data; name: string }
   | { type: 'CLEAR' }
   | { type: 'SET_LOADING'; loading: boolean }
@@ -36,12 +49,33 @@ function reducer(state: State, action: Action): State {
         },
       }
     }
+    case 'SET_PAYLOAD_TYPE': {
+      return {
+        ...state,
+        payload: {
+          ...state.payload,
+          type: action.payloadType,
+          data: null,
+          mineType: action.payloadType === 'file' ? 'image/png' : null,
+        },
+      }
+    }
+    case 'SET_PAYLOAD_MINE_TYPE': {
+      return {
+        ...state,
+        payload: {
+          ...state.payload,
+          mineType: action.mineType,
+        },
+      }
+    }
     case 'SET_PAYLOAD_DATA': {
       return {
         ...state,
         payload: {
           ...state.payload,
           data: action.data,
+          mineType: action.mineType,
         },
       }
     }
@@ -81,13 +115,21 @@ function reducer(state: State, action: Action): State {
 
 function Decode(): JSX.Element {
   const [state, dispatch] = useReducer(reducer, {
-    payload: { type: 'message', bits: 1, data: null },
+    payload: { type: 'message', bits: 1, data: null, mineType: null },
     source: { type: 'image/*', name: null, data: null },
     loading: false,
   })
 
-  const onBitsChange = (e: ChangeEvent<HTMLSelectElement>): void =>
+  const onBitsChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     dispatch({ type: 'SET_BITS', bits: parseInt(e.target.value) as Bits })
+  }
+
+  const onMineTypeChange = (e: ChangeEvent<HTMLSelectElement>): void => {
+    dispatch({
+      type: 'SET_PAYLOAD_MINE_TYPE',
+      mineType: e.target.value as PayloadMineTypes,
+    })
+  }
 
   const onDecode = async (): Promise<void> => {
     if (!state.source.data) return alert('Please select an image')
@@ -103,19 +145,33 @@ function Decode(): JSX.Element {
       const bodyData = new FormData()
       bodyData.append('lsb', state.payload.bits.toString())
       bodyData.append('file', file)
-      const decodeRes = await fetch('/api/decode/text-from-image', {
+      bodyData.append('mineType', state.payload.mineType || '')
+      const decodeRes = await fetch('/api/decode/from-image', {
         method: 'POST',
         body: bodyData,
       })
+
+      // Error in decoding
       if (!decodeRes.ok) {
         const error = await decodeRes.json()
         return alert(error.message)
       }
 
-      const data = await decodeRes.json()
+      // Get data according to payload mine type
+      const data = await (async () => {
+        if (!state.payload.mineType) {
+          const json = await decodeRes.json()
+          return json.message as string
+        }
+        const receiveFile = await decodeRes.blob()
+        return blobToBase64(receiveFile)
+      })()
+      if (data instanceof Error) return
+
       dispatch({
         type: 'SET_PAYLOAD_DATA',
-        data: data.text,
+        mineType: state.payload.mineType,
+        data,
       })
     } finally {
       dispatch({ type: 'SET_LOADING', loading: false })
@@ -123,6 +179,7 @@ function Decode(): JSX.Element {
   }
   return (
     <div className={styles.container}>
+      {/* Source section */}
       <section className={styles.source}>
         <div className={styles.title}>
           <span>Source </span>
@@ -147,7 +204,7 @@ function Decode(): JSX.Element {
         <BitsSelect value={state.payload.bits} onChange={onBitsChange} />
         {!state.source.data && (
           <Dropzone
-            accept={accept}
+            accept={acceptSource}
             onDrop={(acceptedFiles) => {
               acceptedFiles.map((file) => {
                 const reader = new FileReader()
@@ -166,32 +223,78 @@ function Decode(): JSX.Element {
             }}
           />
         )}
-        <div className={styles.images}>
-          {state.source.data && (
+        {state.source.data && (
+          <div className={styles.images}>
             <div>
               <span>Original</span>
-              {/* eslint-disable @next/next/no-img-element */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={state.source.data} alt="Uploaded image" />
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </section>
+
+      {/* Payload section */}
       <section className={styles.payload}>
         <div className={styles.title}>
           <span>Payload </span>
         </div>
+
+        {/* Payload type selection */}
         <div className={styles.form}>
           <span>Type: </span>
-          <button>Message</button>
+          <button
+            className={state.payload.type === 'message' ? styles.selected : ''}
+            onClick={(): void =>
+              dispatch({ type: 'SET_PAYLOAD_TYPE', payloadType: 'message' })
+            }
+          >
+            Message
+          </button>
+          <button
+            className={state.payload.type === 'file' ? styles.selected : ''}
+            onClick={(): void =>
+              dispatch({ type: 'SET_PAYLOAD_TYPE', payloadType: 'file' })
+            }
+          >
+            File
+          </button>
         </div>
-        <textarea
-          disabled={true}
-          value={state.payload.data == null ? '' : state.payload.data}
-          name="message"
-          id="message"
-          cols={30}
-          rows={14}
-        ></textarea>
+
+        {/* Mine type selection  */}
+        {state.payload.type === 'file' && !state.payload.data && (
+          <div className={styles.form}>
+            <span>Extension: </span>
+            <select
+              name="minetype"
+              id="minetype"
+              onChange={onMineTypeChange}
+              value={state.payload.mineType || 'image/png'}
+            >
+              <option value={'image/png'}>png</option>
+              <option value={'image/bmp'}>bmp</option>
+              <option value={'application/pdf'}>pdf</option>
+              <option value={'application/msword'}>ms word</option>
+            </select>
+          </div>
+        )}
+
+        {/* Text payload */}
+        {state.payload.type === 'message' && (
+          <textarea
+            disabled={true}
+            value={state.payload.data || ''}
+            name="message"
+            id="message"
+            cols={30}
+            rows={14}
+          ></textarea>
+        )}
+
+        {/* File payload */}
+        {state.payload.type === 'file' && state.payload.data && (
+          <DocViewer data={state.payload.data} />
+        )}
       </section>
     </div>
   )

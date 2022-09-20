@@ -3,7 +3,7 @@ import os
 import sys
 from time import time
 
-from api.libs.bit_manipulation import (lsb_deinterleave_list,
+from libs.api.bit_manipulation import (lsb_deinterleave_list,
                                        lsb_interleave_list, roundup)
 from PIL import Image
 
@@ -20,20 +20,6 @@ def _str_to_bytes(x, charset=sys.getdefaultencoding(), errors="strict"):
     if isinstance(x, int):
         return str(x).encode(charset, errors)
     raise TypeError("Expected bytes")
-
-
-def prepare_hide(input_image_path, input_file_path):
-    """Prepare files for reading and writing for hiding data."""
-    image = Image.open(input_image_path)
-    input_file = open(input_file_path, "rb")
-    return image, input_file
-
-
-def prepare_recover(steg_image_path, output_file_path):
-    """Prepare files for reading and writing for recovering data."""
-    steg_image = Image.open(steg_image_path)
-    output_file = open(output_file_path, "wb+")
-    return steg_image, output_file
 
 
 def get_filesize(path):
@@ -94,27 +80,6 @@ def hide_message_in_image(input_image, message, num_lsb):
     return image
 
 
-def hide_data(
-        input_image_path, input_file_path, steg_image_path, num_lsb, compression_level
-):
-    """Hides the data from the input file in the input image."""
-    if input_image_path is None:
-        raise ValueError("LSBSteg hiding requires an input image file path")
-    if input_file_path is None:
-        raise ValueError("LSBSteg hiding requires a secret file path")
-    if steg_image_path is None:
-        raise ValueError("LSBSteg hiding requires an output image file path")
-
-    image, input_file = prepare_hide(input_image_path, input_file_path)
-    image = hide_message_in_image(image, input_file.read(), num_lsb)
-    input_file.close()
-
-    # just in case is_animated is not defined, as suggested by the Pillow documentation
-    is_animated = getattr(image, "is_animated", False)
-    image.save(steg_image_path, compress_level=compression_level,
-               save_all=is_animated)
-
-
 def recover_message_from_image(input_image, num_lsb):
     """Returns the message from the steganographed image"""
     start = time()
@@ -156,22 +121,6 @@ def recover_message_from_image(input_image, num_lsb):
             30) + f" in {time() - start:.2f}s"
     )
     return data
-
-
-def recover_data(steg_image_path, output_file_path, num_lsb):
-    """Writes the data from the steganographed image to the output file"""
-    if steg_image_path is None:
-        raise ValueError("LSBSteg recovery requires an input image file path")
-    if output_file_path is None:
-        raise ValueError("LSBSteg recovery requires an output file path")
-
-    steg_image, output_file = prepare_recover(
-        steg_image_path, output_file_path)
-    data = recover_message_from_image(steg_image, num_lsb)
-    start = time()
-    output_file.write(data)
-    output_file.close()
-    log.debug("Output file written".ljust(30) + f" in {time() - start:.2f}s")
 
 
 def analysis(image_file_path, input_file_path, num_lsb):

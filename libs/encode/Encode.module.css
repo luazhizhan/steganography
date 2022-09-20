@@ -39,16 +39,20 @@
 
 /* Payload */
 
-.form > button {
+.form {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.form > .selected {
   background-color: #222222;
   color: white;
 }
 
-.form > button:disabled {
+.form > button {
   background-color: lightgray;
   color: black;
-  cursor: not-allowed;
-  opacity: 0.5;
 }
 
 /* Source */

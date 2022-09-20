@@ -2,8 +2,8 @@
 
 from io import BytesIO
 
-from api.libs.image_lsb import hide_message_in_image
 from flask import Flask, jsonify, request, send_file
+from libs.api.image_lsb import recover_message_from_image
 from PIL import Image
 
 app = Flask(__name__)
@@ -12,18 +12,16 @@ app = Flask(__name__)
 @app.route('/', defaults={'path': ''}, methods=['POST'])
 @app.route('/<path:path>', methods=['POST'])
 def catch_all(path):
-    text = request.form['text']
+    mine_type = request.form['mineType']
     num_lsb = request.form['lsb']
     file = request.files['file']
     try:
         image = Image.open(file)
-        image = hide_message_in_image(image, text, int(num_lsb))
-
-        img_io = BytesIO()
-        image.save(img_io, image.format, quality=100)
-        img_io.seek(0)
-
-        return send_file(img_io, mimetype=file.mimetype)
+        data = recover_message_from_image(image,  int(num_lsb))
+        if mine_type == '':
+            return jsonify({"message": data.decode('utf-8')})
+        else:
+            return send_file(BytesIO(data), mimetype=mine_type)
     except ValueError as e:
         return jsonify({"message": str(e)}), 400
     except:
