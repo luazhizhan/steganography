@@ -6,6 +6,7 @@ import {
   Bits,
   blobToBase64,
   Data,
+  mineTypeToExt,
   PayloadMineTypes,
   Payloads,
 } from '../helper'
@@ -238,6 +239,15 @@ function Decode(): JSX.Element {
       <section className={styles.payload}>
         <div className={styles.title}>
           <span>Payload </span>
+          {state.payload.type === 'file' && state.payload.data && (
+            <a
+              className={styles.download}
+              download={`decoded.${mineTypeToExt(state.payload.mineType)}`}
+              href={state.payload.data}
+            >
+              Download
+            </a>
+          )}
         </div>
 
         {/* Payload type selection */}
@@ -272,13 +282,38 @@ function Decode(): JSX.Element {
               value={state.payload.mineType || 'image/png'}
             >
               <option value={'image/png'}>png</option>
-              <option value={'image/bmp'}>bmp</option>
               <option value={'application/pdf'}>pdf</option>
-              <option value={'application/msword'}>ms word</option>
+              <option
+                value={
+                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                }
+              >
+                ms word
+              </option>
+              <option
+                value={
+                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                }
+              >
+                docx
+              </option>
+              <option
+                value={
+                  'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+                }
+              >
+                pptx
+              </option>
+              <option
+                value={
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                }
+              >
+                xlsx
+              </option>
             </select>
           </div>
         )}
-
         {/* Text payload */}
         {state.payload.type === 'message' && (
           <textarea

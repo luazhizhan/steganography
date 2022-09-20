@@ -2,7 +2,6 @@ import { ChangeEvent, lazy, useReducer } from 'react'
 import BitsSelect from '../components/BitsSelect'
 import Dropzone from '../components/Dropzone'
 import {
-  acceptPayload,
   acceptSource,
   Bits,
   blobToBase64,
@@ -232,7 +231,9 @@ function Encode(): JSX.Element {
         {/* Upload file payload */}
         {state.payload.type === 'file' && !state.payload.data && (
           <Dropzone
-            accept={acceptPayload}
+            accept={{
+              any: ['.pdf', '.pptx', '.docx', '.xlsx', '.png'],
+            }}
             onDrop={(acceptedFiles) => {
               acceptedFiles.map((file) => {
                 const reader = new FileReader()

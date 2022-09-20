@@ -7,20 +7,31 @@ export type Payloads = 'message' | 'file'
 export type PayloadMineTypes =
   | null
   | 'image/png'
-  | 'image/bmp'
   | 'application/pdf'
-  | 'application/msword'
-
-export const acceptPayload = {
-  'image/png': [],
-  'image/bmp': [],
-  'application/pdf': [],
-  'application/msword': [],
-}
+  | 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+  | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  | 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
 export const acceptSource = {
   'image/png': [],
   'image/bmp': [],
+}
+
+export function mineTypeToExt(mineType: PayloadMineTypes): string {
+  switch (mineType) {
+    case 'image/png':
+      return 'png'
+    case 'application/pdf':
+      return 'pdf'
+    case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+      return 'pptx'
+    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+      return 'docx'
+    case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      return 'xlsx'
+    default:
+      return ''
+  }
 }
 
 export async function blobToBase64(blob: Blob): Promise<string | Error> {

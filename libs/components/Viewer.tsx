@@ -8,6 +8,7 @@ function Viewer(props: Props): JSX.Element {
   return (
     <DocViewer
       config={{ header: { disableHeader: true } }}
+      style={{ fontSize: '1.5rem' }}
       pluginRenderers={DocViewerRenderers}
       documents={[{ uri: data, fileName: 'file' }]}
     />
