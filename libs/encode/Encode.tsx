@@ -18,6 +18,7 @@ type State = {
   payload: {
     type: Payloads
     mineType: PayloadMineTypes
+    name: Data
     bits: Bits
     data: Data
   }
@@ -33,7 +34,12 @@ type State = {
 type Action =
   | { type: 'SET_BITS'; bits: Bits }
   | { type: 'SET_PAYLOAD_TYPE'; payloadType: Payloads }
-  | { type: 'SET_PAYLOAD_DATA'; data: Data; mineType: PayloadMineTypes }
+  | {
+      type: 'SET_PAYLOAD_DATA'
+      name: Data
+      data: Data
+      mineType: PayloadMineTypes
+    }
   | {
       type: 'SET_SOURCE_ORIGINAL_DATA'
       data: string
@@ -71,6 +77,7 @@ function reducer(state: State, action: Action): State {
         payload: {
           ...state.payload,
           data: action.data,
+          name: action.name,
           mineType: action.mineType,
         },
       }
@@ -117,7 +124,13 @@ function reducer(state: State, action: Action): State {
 
 function Encode(): JSX.Element {
   const [state, dispatch] = useReducer(reducer, {
-    payload: { type: 'message', mineType: null, bits: 1, data: null },
+    payload: {
+      type: 'message',
+      name: null,
+      mineType: null,
+      bits: 1,
+      data: null,
+    },
     source: {
       type: 'image/*',
       name: null,
@@ -136,7 +149,7 @@ function Encode(): JSX.Element {
       if (!e.target.value.trim()) return null
       return e.target.value
     })()
-    dispatch({ type: 'SET_PAYLOAD_DATA', data, mineType: null })
+    dispatch({ type: 'SET_PAYLOAD_DATA', data, mineType: null, name: null })
   }
 
   const onEncode = async (): Promise<void> => {
@@ -243,6 +256,7 @@ function Encode(): JSX.Element {
                   dispatch({
                     type: 'SET_PAYLOAD_DATA',
                     data: e.target.result,
+                    name: file.name,
                     mineType: file.type as PayloadMineTypes,
                   })
                 }
@@ -254,9 +268,22 @@ function Encode(): JSX.Element {
         )}
 
         {/* File payload viewer */}
-        {state.payload.type === 'file' && state.payload.data && (
-          <DocViewer data={state.payload.data} />
-        )}
+        {state.payload.type === 'file' &&
+          state.payload.data &&
+          !state.payload.mineType?.includes('officedocument') && (
+            <DocViewer data={state.payload.data} />
+          )}
+
+        {/* Office file payload  */}
+        {state.payload.type === 'file' &&
+          state.payload.data &&
+          state.payload.mineType?.includes('officedocument') && (
+            <ul className={styles.officeList}>
+              <li>
+                <span>{state.payload.name}</span>
+              </li>
+            </ul>
+          )}
       </section>
 
       {/* Source section */}

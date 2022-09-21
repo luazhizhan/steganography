@@ -7,6 +7,8 @@ export type Payloads = 'message' | 'file'
 export type PayloadMineTypes =
   | null
   | 'image/png'
+  | 'image/jpg'
+  | 'image/jpeg'
   | 'application/pdf'
   | 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
   | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -21,6 +23,10 @@ export function mineTypeToExt(mineType: PayloadMineTypes): string {
   switch (mineType) {
     case 'image/png':
       return 'png'
+    case 'image/jpg':
+      return 'jpg'
+    case 'image/jpeg':
+      return 'jpeg'
     case 'application/pdf':
       return 'pdf'
     case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':

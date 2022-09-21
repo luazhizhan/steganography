@@ -1,34 +1,76 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Steganography
 
-## Getting Started
+## About the project
 
-First, run the development server:
+Steganography is the practice of concealing a message within another message or a physical object.
+
+### Features
+
+LSB Replacement algorithm is used to hide message/file into another file.
+
+1. Hide message, `.png, .jpg, jpeg, .pdf, .docx, .pptx, .xlsx` to `.png` file
+2. Hide message, `.png, .jpg, jpeg, .pdf, .docx, .pptx, .xlsx` to `.bmp` file
+
+## Built With
+
+- Next.js Typescript
+- Python (API)
+
+## Get Started
+
+### Installation
+
+- [Node.js v16](https://nodejs.org/en/)
+- [Python 3.9 or higher](https://www.python.org/downloads/)
+
+### Setting up
+
+Install yarn package manager
 
 ```bash
-npm run dev
-# or
-yarn dev
+npm install --global yarn
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Install Vercel CLI globally
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install --global vercel
+```
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+Login to [Vercel](https://vercel.com/)
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+```bash
+vercel
+```
 
-## Learn More
+Install [pipenv](https://pipenv.pypa.io/en/latest/)
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pip install pipenv
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Run the application
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Please ensure you have completed tasks in Installation and Setting up sections before proceeding.
 
-## Deploy on Vercel
+Run the following commands on your terminal.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+yarn install # install required packages for the web
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+pipenv install # install required libraries for the APIs
+
+yarn start # start application
+```
+
+Access http://localhost:3000/.
+
+## Deployment
+
+Vercel automatically deploy changes to production when the `main` branch is updated.
+
+## APIs
+
+The `api` folder is where all the Python APIs are in. Each file represent one API endpoint.
+
+Learn more about [Vercel Serverless Functions](https://vercel.com/docs/concepts/functions/serverless-functions)

@@ -19,6 +19,7 @@ type State = {
   payload: {
     type: Payloads
     mineType: PayloadMineTypes
+    name: Data
     bits: Bits
     data: Data
   }
@@ -34,7 +35,12 @@ type Action =
   | { type: 'SET_BITS'; bits: Bits }
   | { type: 'SET_PAYLOAD_TYPE'; payloadType: Payloads }
   | { type: 'SET_PAYLOAD_MINE_TYPE'; mineType: PayloadMineTypes }
-  | { type: 'SET_PAYLOAD_DATA'; data: Data; mineType: PayloadMineTypes }
+  | {
+      type: 'SET_PAYLOAD_DATA'
+      name: Data
+      data: Data
+      mineType: PayloadMineTypes
+    }
   | { type: 'SET_SOURCE_DATA'; data: Data; name: string }
   | { type: 'CLEAR' }
   | { type: 'SET_LOADING'; loading: boolean }
@@ -76,6 +82,7 @@ function reducer(state: State, action: Action): State {
         payload: {
           ...state.payload,
           data: action.data,
+          name: action.name,
           mineType: action.mineType,
         },
       }
@@ -116,7 +123,13 @@ function reducer(state: State, action: Action): State {
 
 function Decode(): JSX.Element {
   const [state, dispatch] = useReducer(reducer, {
-    payload: { type: 'message', bits: 1, data: null, mineType: null },
+    payload: {
+      type: 'message',
+      bits: 1,
+      data: null,
+      mineType: null,
+      name: null,
+    },
     source: { type: 'image/*', name: null, data: null },
     loading: false,
   })
@@ -172,6 +185,7 @@ function Decode(): JSX.Element {
       dispatch({
         type: 'SET_PAYLOAD_DATA',
         mineType: state.payload.mineType,
+        name: `file.${mineTypeToExt(state.payload.mineType)}`,
         data,
       })
     } finally {
@@ -242,7 +256,7 @@ function Decode(): JSX.Element {
           {state.payload.type === 'file' && state.payload.data && (
             <a
               className={styles.download}
-              download={`decoded.${mineTypeToExt(state.payload.mineType)}`}
+              download={`file.${mineTypeToExt(state.payload.mineType)}`}
               href={state.payload.data}
             >
               Download
@@ -282,14 +296,9 @@ function Decode(): JSX.Element {
               value={state.payload.mineType || 'image/png'}
             >
               <option value={'image/png'}>png</option>
+              <option value={'image/jpg'}>jpg</option>
+              <option value={'image/jpeg'}>jpeg</option>
               <option value={'application/pdf'}>pdf</option>
-              <option
-                value={
-                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                }
-              >
-                ms word
-              </option>
               <option
                 value={
                   'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -327,9 +336,22 @@ function Decode(): JSX.Element {
         )}
 
         {/* File payload */}
-        {state.payload.type === 'file' && state.payload.data && (
-          <DocViewer data={state.payload.data} />
-        )}
+        {state.payload.type === 'file' &&
+          state.payload.data &&
+          !state.payload.mineType?.includes('officedocument') && (
+            <DocViewer data={state.payload.data} />
+          )}
+
+        {/* Office file payload  */}
+        {state.payload.type === 'file' &&
+          state.payload.data &&
+          state.payload.mineType?.includes('officedocument') && (
+            <ul className={styles.officeList}>
+              <li>
+                <span>{state.payload.name}</span>
+              </li>
+            </ul>
+          )}
       </section>
     </div>
   )
