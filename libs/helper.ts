@@ -4,7 +4,7 @@ export type Data = string | null
 
 export type Payloads = 'message' | 'file'
 
-export type PayloadMineTypes =
+export type PayloadMimeTypes =
   | null
   | 'image/png'
   | 'image/jpg'
@@ -19,8 +19,8 @@ export const acceptSource = {
   'image/bmp': [],
 }
 
-export function mineTypeToExt(mineType: PayloadMineTypes): string {
-  switch (mineType) {
+export function mimeTypeToExt(mimeType: PayloadMimeTypes): string {
+  switch (mimeType) {
     case 'image/png':
       return 'png'
     case 'image/jpg':

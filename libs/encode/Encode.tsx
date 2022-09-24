@@ -6,7 +6,7 @@ import {
   Bits,
   blobToBase64,
   Data,
-  PayloadMineTypes,
+  PayloadMimeTypes,
   Payloads,
 } from '../helper'
 import styles from './Encode.module.css'
@@ -17,7 +17,7 @@ const DocViewer = lazy(() => import('../components/Viewer'))
 type State = {
   payload: {
     type: Payloads
-    mineType: PayloadMineTypes
+    mimeType: PayloadMimeTypes
     name: Data
     bits: Bits
     data: Data
@@ -38,7 +38,7 @@ type Action =
       type: 'SET_PAYLOAD_DATA'
       name: Data
       data: Data
-      mineType: PayloadMineTypes
+      mimeType: PayloadMimeTypes
     }
   | {
       type: 'SET_SOURCE_ORIGINAL_DATA'
@@ -66,7 +66,7 @@ function reducer(state: State, action: Action): State {
         payload: {
           ...state.payload,
           type: action.payloadType,
-          mineType: null,
+          mimeType: null,
           data: null,
         },
       }
@@ -78,7 +78,7 @@ function reducer(state: State, action: Action): State {
           ...state.payload,
           data: action.data,
           name: action.name,
-          mineType: action.mineType,
+          mimeType: action.mimeType,
         },
       }
     }
@@ -127,7 +127,7 @@ function Encode(): JSX.Element {
     payload: {
       type: 'message',
       name: null,
-      mineType: null,
+      mimeType: null,
       bits: 1,
       data: null,
     },
@@ -149,7 +149,7 @@ function Encode(): JSX.Element {
       if (!e.target.value.trim()) return null
       return e.target.value
     })()
-    dispatch({ type: 'SET_PAYLOAD_DATA', data, mineType: null, name: null })
+    dispatch({ type: 'SET_PAYLOAD_DATA', data, mimeType: null, name: null })
   }
 
   const onEncode = async (): Promise<void> => {
@@ -257,7 +257,7 @@ function Encode(): JSX.Element {
                     type: 'SET_PAYLOAD_DATA',
                     data: e.target.result,
                     name: file.name,
-                    mineType: file.type as PayloadMineTypes,
+                    mimeType: file.type as PayloadMimeTypes,
                   })
                 }
                 reader.readAsDataURL(file)
@@ -270,14 +270,14 @@ function Encode(): JSX.Element {
         {/* File payload viewer */}
         {state.payload.type === 'file' &&
           state.payload.data &&
-          !state.payload.mineType?.includes('officedocument') && (
+          !state.payload.mimeType?.includes('officedocument') && (
             <DocViewer data={state.payload.data} />
           )}
 
         {/* Office file payload  */}
         {state.payload.type === 'file' &&
           state.payload.data &&
-          state.payload.mineType?.includes('officedocument') && (
+          state.payload.mimeType?.includes('officedocument') && (
             <ul className={styles.officeList}>
               <li>
                 <span>{state.payload.name}</span>

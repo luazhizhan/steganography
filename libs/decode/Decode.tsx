@@ -6,9 +6,9 @@ import {
   Bits,
   blobToBase64,
   Data,
-  mineTypeToExt,
-  PayloadMineTypes,
-  Payloads,
+  mimeTypeToExt,
+  PayloadMimeTypes,
+  Payloads
 } from '../helper'
 import styles from './Decode.module.css'
 
@@ -18,7 +18,7 @@ const DocViewer = lazy(() => import('../components/Viewer'))
 type State = {
   payload: {
     type: Payloads
-    mineType: PayloadMineTypes
+    mimeType: PayloadMimeTypes
     name: Data
     bits: Bits
     data: Data
@@ -34,12 +34,12 @@ type State = {
 type Action =
   | { type: 'SET_BITS'; bits: Bits }
   | { type: 'SET_PAYLOAD_TYPE'; payloadType: Payloads }
-  | { type: 'SET_PAYLOAD_MINE_TYPE'; mineType: PayloadMineTypes }
+  | { type: 'SET_PAYLOAD_MIME_TYPE'; mimeType: PayloadMimeTypes }
   | {
       type: 'SET_PAYLOAD_DATA'
       name: Data
       data: Data
-      mineType: PayloadMineTypes
+      mimeType: PayloadMimeTypes
     }
   | { type: 'SET_SOURCE_DATA'; data: Data; name: string }
   | { type: 'CLEAR' }
@@ -63,16 +63,16 @@ function reducer(state: State, action: Action): State {
           ...state.payload,
           type: action.payloadType,
           data: null,
-          mineType: action.payloadType === 'file' ? 'image/png' : null,
+          mimeType: action.payloadType === 'file' ? 'image/png' : null,
         },
       }
     }
-    case 'SET_PAYLOAD_MINE_TYPE': {
+    case 'SET_PAYLOAD_MIME_TYPE': {
       return {
         ...state,
         payload: {
           ...state.payload,
-          mineType: action.mineType,
+          mimeType: action.mimeType,
         },
       }
     }
@@ -83,7 +83,7 @@ function reducer(state: State, action: Action): State {
           ...state.payload,
           data: action.data,
           name: action.name,
-          mineType: action.mineType,
+          mimeType: action.mimeType,
         },
       }
     }
@@ -127,7 +127,7 @@ function Decode(): JSX.Element {
       type: 'message',
       bits: 1,
       data: null,
-      mineType: null,
+      mimeType: null,
       name: null,
     },
     source: { type: 'image/*', name: null, data: null },
@@ -138,10 +138,10 @@ function Decode(): JSX.Element {
     dispatch({ type: 'SET_BITS', bits: parseInt(e.target.value) as Bits })
   }
 
-  const onMineTypeChange = (e: ChangeEvent<HTMLSelectElement>): void => {
+  const onMimeTypeChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     dispatch({
-      type: 'SET_PAYLOAD_MINE_TYPE',
-      mineType: e.target.value as PayloadMineTypes,
+      type: 'SET_PAYLOAD_MIME_TYPE',
+      mimeType: e.target.value as PayloadMimeTypes,
     })
   }
 
@@ -159,7 +159,7 @@ function Decode(): JSX.Element {
       const bodyData = new FormData()
       bodyData.append('lsb', state.payload.bits.toString())
       bodyData.append('file', file)
-      bodyData.append('mineType', state.payload.mineType || '')
+      bodyData.append('mimeType', state.payload.mimeType || '')
       const decodeRes = await fetch('/api/decode/from-image', {
         method: 'POST',
         body: bodyData,
@@ -171,9 +171,9 @@ function Decode(): JSX.Element {
         return alert(error.message)
       }
 
-      // Get data according to payload mine type
+      // Get data according to payload mime type
       const data = await (async () => {
-        if (!state.payload.mineType) {
+        if (!state.payload.mimeType) {
           const json = await decodeRes.json()
           return json.message as string
         }
@@ -184,8 +184,8 @@ function Decode(): JSX.Element {
 
       dispatch({
         type: 'SET_PAYLOAD_DATA',
-        mineType: state.payload.mineType,
-        name: `file.${mineTypeToExt(state.payload.mineType)}`,
+        mimeType: state.payload.mimeType,
+        name: `file.${mimeTypeToExt(state.payload.mimeType)}`,
         data,
       })
     } finally {
@@ -256,7 +256,7 @@ function Decode(): JSX.Element {
           {state.payload.type === 'file' && state.payload.data && (
             <a
               className={styles.download}
-              download={`file.${mineTypeToExt(state.payload.mineType)}`}
+              download={`file.${mimeTypeToExt(state.payload.mimeType)}`}
               href={state.payload.data}
             >
               Download
@@ -285,15 +285,15 @@ function Decode(): JSX.Element {
           </button>
         </div>
 
-        {/* Mine type selection  */}
+        {/* Mime type selection  */}
         {state.payload.type === 'file' && !state.payload.data && (
           <div className={styles.form}>
             <span>Extension: </span>
             <select
-              name="minetype"
-              id="minetype"
-              onChange={onMineTypeChange}
-              value={state.payload.mineType || 'image/png'}
+              name="mimetype"
+              id="mimetype"
+              onChange={onMimeTypeChange}
+              value={state.payload.mimeType || 'image/png'}
             >
               <option value={'image/png'}>png</option>
               <option value={'image/jpg'}>jpg</option>
@@ -338,14 +338,14 @@ function Decode(): JSX.Element {
         {/* File payload */}
         {state.payload.type === 'file' &&
           state.payload.data &&
-          !state.payload.mineType?.includes('officedocument') && (
+          !state.payload.mimeType?.includes('officedocument') && (
             <DocViewer data={state.payload.data} />
           )}
 
         {/* Office file payload  */}
         {state.payload.type === 'file' &&
           state.payload.data &&
-          state.payload.mineType?.includes('officedocument') && (
+          state.payload.mimeType?.includes('officedocument') && (
             <ul className={styles.officeList}>
               <li>
                 <span>{state.payload.name}</span>
