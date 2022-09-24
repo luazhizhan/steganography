@@ -1,30 +1,31 @@
-import { ChangeEvent, lazy, useReducer } from 'react'
+import { ChangeEvent, useReducer } from 'react'
 import BitsSelect from '../components/BitsSelect'
 import Dropzone from '../components/Dropzone'
+import PayloadViewer from '../components/PayloadViewer'
 import {
   acceptSource,
   Bits,
   blobToBase64,
   Data,
   mimeTypeToExt,
+  NumData,
   PayloadMimeTypes,
-  Payloads
+  Payloads,
+  SourceMimeTypes,
 } from '../helper'
 import styles from './Decode.module.css'
-
-// Must be lazily imported as this requires window object
-const DocViewer = lazy(() => import('../components/Viewer'))
 
 type State = {
   payload: {
     type: Payloads
     mimeType: PayloadMimeTypes
+    size: NumData
     name: Data
     bits: Bits
     data: Data
   }
   source: {
-    type: 'image/*'
+    mimeType: SourceMimeTypes
     name: Data
     data: Data
   }
@@ -41,7 +42,13 @@ type Action =
       data: Data
       mimeType: PayloadMimeTypes
     }
-  | { type: 'SET_SOURCE_DATA'; data: Data; name: string }
+  | { type: 'SET_PAYLOAD_SIZE'; size: NumData }
+  | {
+      type: 'SET_SOURCE_DATA'
+      mimeType: SourceMimeTypes
+      data: Data
+      name: string
+    }
   | { type: 'CLEAR' }
   | { type: 'SET_LOADING'; loading: boolean }
 
@@ -76,6 +83,15 @@ function reducer(state: State, action: Action): State {
         },
       }
     }
+    case 'SET_PAYLOAD_SIZE': {
+      return {
+        ...state,
+        payload: {
+          ...state.payload,
+          size: action.size,
+        },
+      }
+    }
     case 'SET_PAYLOAD_DATA': {
       return {
         ...state,
@@ -94,6 +110,7 @@ function reducer(state: State, action: Action): State {
           ...state.source,
           name: action.name,
           data: action.data,
+          mimeType: action.mimeType,
         },
       }
     }
@@ -126,11 +143,12 @@ function Decode(): JSX.Element {
     payload: {
       type: 'message',
       bits: 1,
+      size: null,
       data: null,
       mimeType: null,
       name: null,
     },
-    source: { type: 'image/*', name: null, data: null },
+    source: { mimeType: 'image', name: null, data: null },
     loading: false,
   })
 
@@ -143,6 +161,14 @@ function Decode(): JSX.Element {
       type: 'SET_PAYLOAD_MIME_TYPE',
       mimeType: e.target.value as PayloadMimeTypes,
     })
+  }
+
+  const onPayloadSizeChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    const size = ((): number | null => {
+      if (!e.target.value.trim()) return null
+      return parseInt(e.target.value)
+    })()
+    dispatch({ type: 'SET_PAYLOAD_SIZE', size })
   }
 
   const onDecode = async (): Promise<void> => {
@@ -160,7 +186,10 @@ function Decode(): JSX.Element {
       bodyData.append('lsb', state.payload.bits.toString())
       bodyData.append('file', file)
       bodyData.append('mimeType', state.payload.mimeType || '')
-      const decodeRes = await fetch('/api/decode/from-image', {
+      bodyData.append('recoverSize', state.payload.size?.toString() || '0')
+      const endpoint =
+        state.source.mimeType === 'image' ? 'from-image' : 'from-wav'
+      const decodeRes = await fetch(`/api/decode/${endpoint}`, {
         method: 'POST',
         body: bodyData,
       })
@@ -228,6 +257,7 @@ function Decode(): JSX.Element {
                   if (typeof e.target.result !== 'string') return
                   dispatch({
                     type: 'SET_SOURCE_DATA',
+                    mimeType: file.type.includes('image') ? 'image' : 'audio',
                     name: file.name,
                     data: e.target.result,
                   })
@@ -241,9 +271,15 @@ function Decode(): JSX.Element {
         {state.source.data && (
           <div className={styles.images}>
             <div>
-              <span>Original</span>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={state.source.data} alt="Uploaded image" />
+              {state.source.mimeType === 'image' && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={state.source.data} alt="Uploaded image" />
+              )}
+              {state.source.mimeType === 'audio' && (
+                <audio controls>
+                  <source src={state.source.data} type="audio/wav" />
+                </audio>
+              )}
             </div>
           </div>
         )}
@@ -285,6 +321,18 @@ function Decode(): JSX.Element {
           </button>
         </div>
 
+        {/* Payload size for audio source only */}
+        {state.source.mimeType === 'audio' && (
+          <div>
+            <span>Size: </span>
+            <input
+              type="number"
+              step={1}
+              onChange={onPayloadSizeChange}
+              value={state.payload.size || 0}
+            />
+          </div>
+        )}
         {/* Mime type selection  */}
         {state.payload.type === 'file' && !state.payload.data && (
           <div className={styles.form}>
@@ -298,6 +346,7 @@ function Decode(): JSX.Element {
               <option value={'image/png'}>png</option>
               <option value={'image/jpg'}>jpg</option>
               <option value={'image/jpeg'}>jpeg</option>
+              <option value={'audio/wav'}>wav</option>
               <option value={'application/pdf'}>pdf</option>
               <option
                 value={
@@ -335,23 +384,13 @@ function Decode(): JSX.Element {
           ></textarea>
         )}
 
-        {/* File payload */}
-        {state.payload.type === 'file' &&
-          state.payload.data &&
-          !state.payload.mimeType?.includes('officedocument') && (
-            <DocViewer data={state.payload.data} />
-          )}
-
-        {/* Office file payload  */}
-        {state.payload.type === 'file' &&
-          state.payload.data &&
-          state.payload.mimeType?.includes('officedocument') && (
-            <ul className={styles.officeList}>
-              <li>
-                <span>{state.payload.name}</span>
-              </li>
-            </ul>
-          )}
+        {/* File payload viewer */}
+        <PayloadViewer
+          data={state.payload.data}
+          mime={state.payload.mimeType}
+          name={state.payload.name}
+          type={state.payload.type}
+        />
       </section>
     </div>
   )

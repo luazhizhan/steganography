@@ -105,14 +105,6 @@
   font-size: 18px;
 }
 
-/* Office file */
-
-.officeList {
-  padding-left: 17px;
-  padding-top: 10px;
-  font-weight: 500;
-}
-
 @media screen and (max-device-width: 900px) {
   .container {
     display: block;

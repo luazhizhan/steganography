@@ -1,30 +1,13 @@
 import logging
-import os
 import sys
 from time import time
 
 from libs.api.bit_manipulation import (lsb_deinterleave_list,
-                                       lsb_interleave_list, roundup)
+                                       lsb_interleave_list, roundup,
+                                       str_to_bytes)
 from PIL import Image
 
 log = logging.getLogger(__name__)
-
-
-def _str_to_bytes(x, charset=sys.getdefaultencoding(), errors="strict"):
-    if x is None:
-        return None
-    if isinstance(x, (bytes, bytearray, memoryview)):  # noqa
-        return bytes(x)
-    if isinstance(x, str):
-        return x.encode(charset, errors)
-    if isinstance(x, int):
-        return str(x).encode(charset, errors)
-    raise TypeError("Expected bytes")
-
-
-def get_filesize(path):
-    """Returns the file size in bytes of the file at path"""
-    return os.stat(path).st_size
 
 
 def max_bits_to_hide(image, num_lsb):
@@ -58,7 +41,7 @@ def hide_message_in_image(input_image, message, num_lsb):
     file_size_tag = message_size.to_bytes(
         bytes_in_max_file_size(image, num_lsb), byteorder=sys.byteorder
     )
-    data = file_size_tag + _str_to_bytes(message)
+    data = file_size_tag + str_to_bytes(message)
     log.debug("Files read".ljust(30) + f" in {time() - start:.2f}s")
 
     if 8 * len(data) > max_bits_to_hide(image, num_lsb):
@@ -121,25 +104,3 @@ def recover_message_from_image(input_image, num_lsb):
             30) + f" in {time() - start:.2f}s"
     )
     return data
-
-
-def analysis(image_file_path, input_file_path, num_lsb):
-    """Print how much data we can hide and the size of the data to be hidden"""
-    if image_file_path is None:
-        raise ValueError("LSBSteg analysis requires an input image file path")
-
-    image = Image.open(image_file_path)
-    print(
-        f"Image resolution: ({image.size[0]}, {image.size[1]})\n"
-        + f"Using {num_lsb} LSBs, we can hide:".ljust(30)
-        + f" {max_bits_to_hide(image, num_lsb) // 8} B"
-    )
-
-    if input_file_path is not None:
-        print(
-            "Size of input file:".ljust(
-                30) + f" {get_filesize(input_file_path)} B\n"
-        )
-
-    print("File size tag:".ljust(30) +
-          f" {bytes_in_max_file_size(image, num_lsb)} B")

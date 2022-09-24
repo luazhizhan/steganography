@@ -2,6 +2,10 @@ export type Bits = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
 
 export type Data = string | null
 
+export type NumData = number | null
+
+export type SourceMimeTypes = 'image' | 'audio'
+
 export type Payloads = 'message' | 'file'
 
 export type PayloadMimeTypes =
@@ -9,6 +13,7 @@ export type PayloadMimeTypes =
   | 'image/png'
   | 'image/jpg'
   | 'image/jpeg'
+  | 'audio/wav'
   | 'application/pdf'
   | 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
   | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -17,6 +22,7 @@ export type PayloadMimeTypes =
 export const acceptSource = {
   'image/png': [],
   'image/bmp': [],
+  'audio/wav': [],
 }
 
 export function mimeTypeToExt(mimeType: PayloadMimeTypes): string {
@@ -35,6 +41,8 @@ export function mimeTypeToExt(mimeType: PayloadMimeTypes): string {
       return 'docx'
     case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
       return 'xlsx'
+    case 'audio/wav':
+      return 'wav'
     default:
       return ''
   }

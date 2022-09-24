@@ -1,29 +1,30 @@
-import { ChangeEvent, lazy, useReducer } from 'react'
+import { ChangeEvent, useReducer } from 'react'
 import BitsSelect from '../components/BitsSelect'
 import Dropzone from '../components/Dropzone'
+import PayloadViewer from '../components/PayloadViewer'
 import {
   acceptSource,
   Bits,
   blobToBase64,
   Data,
+  NumData,
   PayloadMimeTypes,
   Payloads,
+  SourceMimeTypes,
 } from '../helper'
 import styles from './Encode.module.css'
-
-// Must be lazily imported as this requires window object
-const DocViewer = lazy(() => import('../components/Viewer'))
 
 type State = {
   payload: {
     type: Payloads
     mimeType: PayloadMimeTypes
     name: Data
+    size: NumData
     bits: Bits
     data: Data
   }
   source: {
-    type: 'image/*'
+    mimeType: SourceMimeTypes
     name: Data
     original: Data
     encoded: Data
@@ -38,10 +39,12 @@ type Action =
       type: 'SET_PAYLOAD_DATA'
       name: Data
       data: Data
+      size: NumData
       mimeType: PayloadMimeTypes
     }
   | {
       type: 'SET_SOURCE_ORIGINAL_DATA'
+      mimeType: SourceMimeTypes
       data: string
       name: string
     }
@@ -68,6 +71,8 @@ function reducer(state: State, action: Action): State {
           type: action.payloadType,
           mimeType: null,
           data: null,
+          name: null,
+          size: null,
         },
       }
     }
@@ -79,6 +84,7 @@ function reducer(state: State, action: Action): State {
           data: action.data,
           name: action.name,
           mimeType: action.mimeType,
+          size: action.size,
         },
       }
     }
@@ -89,6 +95,7 @@ function reducer(state: State, action: Action): State {
           ...state.source,
           name: action.name,
           original: action.data,
+          mimeType: action.mimeType,
           encoded: null,
         },
       }
@@ -128,11 +135,12 @@ function Encode(): JSX.Element {
       type: 'message',
       name: null,
       mimeType: null,
+      size: null,
       bits: 1,
       data: null,
     },
     source: {
-      type: 'image/*',
+      mimeType: 'image',
       name: null,
       original: null,
       encoded: null,
@@ -144,12 +152,20 @@ function Encode(): JSX.Element {
     dispatch({ type: 'SET_BITS', bits: parseInt(e.target.value) as Bits })
   }
 
+  const strByteSize = (str: string | null): number => new Blob([str || '']).size
+
   const onMsgPayloadChange = (e: ChangeEvent<HTMLTextAreaElement>): void => {
     const data = ((): string | null => {
       if (!e.target.value.trim()) return null
       return e.target.value
     })()
-    dispatch({ type: 'SET_PAYLOAD_DATA', data, mimeType: null, name: null })
+    dispatch({
+      type: 'SET_PAYLOAD_DATA',
+      data,
+      mimeType: null,
+      name: null,
+      size: strByteSize(data) || null,
+    })
   }
 
   const onEncode = async (): Promise<void> => {
@@ -174,12 +190,13 @@ function Encode(): JSX.Element {
         return payloadConvertRes.blob()
       })()
 
-      // Encode image
+      // Encode data
       const bodyData = new FormData()
       bodyData.append('lsb', state.payload.bits.toString())
       bodyData.append('file', file)
       bodyData.append('payload', payload)
-      const encodeRes = await fetch('/api/encode/to-image', {
+      const endpoint = state.source.mimeType === 'image' ? 'to-image' : 'to-wav'
+      const encodeRes = await fetch(`/api/encode/${endpoint}`, {
         method: 'POST',
         body: bodyData,
       })
@@ -228,6 +245,7 @@ function Encode(): JSX.Element {
           </button>
         </div>
         <BitsSelect value={state.payload.bits} onChange={onBitsChange} />
+        {state.payload.size && <span>Size: {state.payload.size} bytes</span>}
 
         {/* Text payload message */}
         {state.payload.type === 'message' && (
@@ -245,7 +263,7 @@ function Encode(): JSX.Element {
         {state.payload.type === 'file' && !state.payload.data && (
           <Dropzone
             accept={{
-              any: ['.pdf', '.pptx', '.docx', '.xlsx', '.png'],
+              any: ['.pdf', '.pptx', '.docx', '.xlsx', '.png', '.wav'],
             }}
             onDrop={(acceptedFiles) => {
               acceptedFiles.map((file) => {
@@ -258,6 +276,7 @@ function Encode(): JSX.Element {
                     data: e.target.result,
                     name: file.name,
                     mimeType: file.type as PayloadMimeTypes,
+                    size: file.size,
                   })
                 }
                 reader.readAsDataURL(file)
@@ -268,22 +287,12 @@ function Encode(): JSX.Element {
         )}
 
         {/* File payload viewer */}
-        {state.payload.type === 'file' &&
-          state.payload.data &&
-          !state.payload.mimeType?.includes('officedocument') && (
-            <DocViewer data={state.payload.data} />
-          )}
-
-        {/* Office file payload  */}
-        {state.payload.type === 'file' &&
-          state.payload.data &&
-          state.payload.mimeType?.includes('officedocument') && (
-            <ul className={styles.officeList}>
-              <li>
-                <span>{state.payload.name}</span>
-              </li>
-            </ul>
-          )}
+        <PayloadViewer
+          data={state.payload.data}
+          mime={state.payload.mimeType}
+          name={state.payload.name}
+          type={state.payload.type}
+        />
       </section>
 
       {/* Source section */}
@@ -332,6 +341,7 @@ function Encode(): JSX.Element {
                   if (typeof e.target.result !== 'string') return
                   dispatch({
                     type: 'SET_SOURCE_ORIGINAL_DATA',
+                    mimeType: file.type.includes('image') ? 'image' : 'audio',
                     name: file.name,
                     data: e.target.result,
                   })
@@ -348,15 +358,29 @@ function Encode(): JSX.Element {
           {state.source.original && (
             <div>
               <span>Original</span>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={state.source.original} alt="Uploaded image" />
+              {state.source.mimeType === 'image' && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={state.source.original} alt="Uploaded image" />
+              )}
+              {state.source.mimeType === 'audio' && (
+                <audio controls>
+                  <source src={state.source.original} type="audio/wav" />
+                </audio>
+              )}
             </div>
           )}
           {state.source.encoded && (
             <div>
               <span>Encoded</span>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={state.source.encoded} alt="Encoded image" />
+              {state.source.mimeType === 'image' && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={state.source.encoded} alt="Encoded image" />
+              )}
+              {state.source.mimeType === 'audio' && (
+                <audio controls>
+                  <source src={state.source.encoded} type="audio/wav" />
+                </audio>
+              )}
             </div>
           )}
         </div>
