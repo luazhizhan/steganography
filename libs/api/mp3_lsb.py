@@ -69,7 +69,41 @@ def encode(cover, payload, n):
     file.close()
     tempfile.seek(0)
     return tempfile
-    
 
+def decodeAndBuild(cover, n, size):
+    f = open(cover, "rb")
+    data = f.read()
+    data = hexdump.dump(data)
+    f.close()
+
+    data = data.replace(" ", "")
+    data = data.split(sep="FFFBA404")
+
+    ans = ""
+    count = 0
+    for i in range(1, len(data)):
+        if (count == size):
+            break
+
+        data[i] = textwrap.fill(data[i], 2)
+        data[i] = data[i].split("\n")
+        
+        for j in data[i]:
+            if (count == size):
+                break
+
+            binary = (int(j, 16) << 8 - n) % 256
+            binary = bin(binary >> 8 - n)[2:].zfill(n)
+            ans += binary
+            count+=1
+
+    ans = "".join(ans)
+    ans = textwrap.fill(ans, 8)
+    ans = ans.split("\n")
+    ans = [hex(int(i,2))[2:] for i in ans]
+    ans = "".join(ans)   
+    
+    return hexdump.restore(ans)
+    
 
 
