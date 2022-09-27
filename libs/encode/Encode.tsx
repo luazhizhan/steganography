@@ -140,7 +140,7 @@ function Encode(): JSX.Element {
       data: null,
     },
     source: {
-      mimeType: 'image',
+      mimeType: 'image/png',
       name: null,
       original: null,
       encoded: null,
@@ -166,6 +166,17 @@ function Encode(): JSX.Element {
       name: null,
       size: strByteSize(data) || null,
     })
+  }
+
+  const encodeApiEndpoint = (mineType: SourceMimeTypes): string => {
+    switch (mineType) {
+      case 'image/png':
+        return 'to-image'
+      case 'audio/wav':
+        return 'to-wav'
+      case 'audio/mpeg':
+        return 'to-mp3'
+    }
   }
 
   const onEncode = async (): Promise<void> => {
@@ -195,7 +206,7 @@ function Encode(): JSX.Element {
       bodyData.append('lsb', state.payload.bits.toString())
       bodyData.append('file', file)
       bodyData.append('payload', payload)
-      const endpoint = state.source.mimeType === 'image' ? 'to-image' : 'to-wav'
+      const endpoint = encodeApiEndpoint(state.source.mimeType)
       const encodeRes = await fetch(`/api/encode/${endpoint}`, {
         method: 'POST',
         body: bodyData,
@@ -341,7 +352,7 @@ function Encode(): JSX.Element {
                   if (typeof e.target.result !== 'string') return
                   dispatch({
                     type: 'SET_SOURCE_ORIGINAL_DATA',
-                    mimeType: file.type.includes('image') ? 'image' : 'audio',
+                    mimeType: file.type as SourceMimeTypes,
                     name: file.name,
                     data: e.target.result,
                   })
@@ -358,13 +369,16 @@ function Encode(): JSX.Element {
           {state.source.original && (
             <div>
               <span>Original</span>
-              {state.source.mimeType === 'image' && (
+              {state.source.mimeType.includes('image') && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={state.source.original} alt="Uploaded image" />
               )}
-              {state.source.mimeType === 'audio' && (
+              {state.source.mimeType.includes('audio') && (
                 <audio controls>
-                  <source src={state.source.original} type="audio/wav" />
+                  <source
+                    src={state.source.original}
+                    type={state.source.mimeType}
+                  />
                 </audio>
               )}
             </div>
@@ -372,13 +386,16 @@ function Encode(): JSX.Element {
           {state.source.encoded && (
             <div>
               <span>Encoded</span>
-              {state.source.mimeType === 'image' && (
+              {state.source.mimeType.includes('image') && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={state.source.encoded} alt="Encoded image" />
               )}
-              {state.source.mimeType === 'audio' && (
+              {state.source.mimeType.includes('audio') && (
                 <audio controls>
-                  <source src={state.source.encoded} type="audio/wav" />
+                  <source
+                    src={state.source.encoded}
+                    type={state.source.mimeType}
+                  />
                 </audio>
               )}
             </div>

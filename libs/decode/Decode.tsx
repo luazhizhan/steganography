@@ -7,9 +7,9 @@ import {
   Bits,
   blobToBase64,
   Data,
-  mimeTypeToExt,
   NumData,
   PayloadMimeTypes,
+  payloadMimeTypeToExt,
   Payloads,
   SourceMimeTypes,
 } from '../helper'
@@ -148,7 +148,7 @@ function Decode(): JSX.Element {
       mimeType: null,
       name: null,
     },
-    source: { mimeType: 'image', name: null, data: null },
+    source: { mimeType: 'image/png', name: null, data: null },
     loading: false,
   })
 
@@ -171,6 +171,17 @@ function Decode(): JSX.Element {
     dispatch({ type: 'SET_PAYLOAD_SIZE', size })
   }
 
+  const decodeApiEndpoint = (mineType: SourceMimeTypes): string => {
+    switch (mineType) {
+      case 'image/png':
+        return 'from-image'
+      case 'audio/wav':
+        return 'from-wav'
+      case 'audio/mpeg':
+        return 'from-mp3'
+    }
+  }
+
   const onDecode = async (): Promise<void> => {
     if (!state.source.data) return alert('Please select an image')
 
@@ -187,8 +198,7 @@ function Decode(): JSX.Element {
       bodyData.append('file', file)
       bodyData.append('mimeType', state.payload.mimeType || '')
       bodyData.append('recoverSize', state.payload.size?.toString() || '0')
-      const endpoint =
-        state.source.mimeType === 'image' ? 'from-image' : 'from-wav'
+      const endpoint = decodeApiEndpoint(state.source.mimeType)
       const decodeRes = await fetch(`/api/decode/${endpoint}`, {
         method: 'POST',
         body: bodyData,
@@ -214,7 +224,7 @@ function Decode(): JSX.Element {
       dispatch({
         type: 'SET_PAYLOAD_DATA',
         mimeType: state.payload.mimeType,
-        name: `file.${mimeTypeToExt(state.payload.mimeType)}`,
+        name: `file.${payloadMimeTypeToExt(state.payload.mimeType)}`,
         data,
       })
     } finally {
@@ -257,7 +267,7 @@ function Decode(): JSX.Element {
                   if (typeof e.target.result !== 'string') return
                   dispatch({
                     type: 'SET_SOURCE_DATA',
-                    mimeType: file.type.includes('image') ? 'image' : 'audio',
+                    mimeType: file.type as SourceMimeTypes,
                     name: file.name,
                     data: e.target.result,
                   })
@@ -271,13 +281,16 @@ function Decode(): JSX.Element {
         {state.source.data && (
           <div className={styles.images}>
             <div>
-              {state.source.mimeType === 'image' && (
+              {state.source.mimeType.includes('image') && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={state.source.data} alt="Uploaded image" />
               )}
-              {state.source.mimeType === 'audio' && (
+              {state.source.mimeType.includes('audio') && (
                 <audio controls>
-                  <source src={state.source.data} type="audio/wav" />
+                  <source
+                    src={state.source.data}
+                    type={state.source.mimeType}
+                  />
                 </audio>
               )}
             </div>
@@ -292,7 +305,7 @@ function Decode(): JSX.Element {
           {state.payload.type === 'file' && state.payload.data && (
             <a
               className={styles.download}
-              download={`file.${mimeTypeToExt(state.payload.mimeType)}`}
+              download={`file.${payloadMimeTypeToExt(state.payload.mimeType)}`}
               href={state.payload.data}
             >
               Download
@@ -321,8 +334,8 @@ function Decode(): JSX.Element {
           </button>
         </div>
 
-        {/* Payload size for audio source only */}
-        {state.source.mimeType === 'audio' && (
+        {/* Payload size for audio wav source only */}
+        {state.source.mimeType.includes('audio') && (
           <div>
             <span>Size: </span>
             <input
@@ -347,6 +360,7 @@ function Decode(): JSX.Element {
               <option value={'image/jpg'}>jpg</option>
               <option value={'image/jpeg'}>jpeg</option>
               <option value={'audio/wav'}>wav</option>
+              <option value={'audio/mpeg'}>mp3</option>
               <option value={'application/pdf'}>pdf</option>
               <option
                 value={
