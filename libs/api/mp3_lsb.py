@@ -98,6 +98,8 @@ def decodeAndBuild(cover, n, size):
             count+=1
 
     ans = "".join(ans)
+    spill = len(ans) % 8;
+    ans = ans[:len(ans)-spill]
     ans = textwrap.fill(ans, 8)
     ans = ans.split("\n")
     ans = [hex(int(i,2))[2:] for i in ans]
