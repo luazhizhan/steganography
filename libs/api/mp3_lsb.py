@@ -49,7 +49,7 @@ def getPayloadBinList(payload, n: int):
     payload = textwrap.fill(payload, n)
     payload = payload.split("\n")
     if (len(payload[-1]) != n):
-        payload[-1] = payload[-1].rjust(n, "0")
+        payload[-1] = payload[-1].ljust(n, "0")
 
     size = len(payload)
     return size, lengthInBits, payload
