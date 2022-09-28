@@ -1,6 +1,6 @@
 import io
 import textwrap
-
+import math
 import hexdump
 
 # file = io.BytesIO(open("basemp3.mp3", "rb")) // read file as bytes into bytesIO stream
@@ -72,18 +72,19 @@ def decodeAndBuild(cover, n, size):
     data = hexdump.dump(cover)
     data = data.replace(" ", "")
     data = data.split(sep="FFFBA404")
+    limit = math.ceil(size*8/n);
 
     ans = ""
     count = 0
     for i in range(1, len(data)):
-        if (count == size):
+        if (count == limit):
             break
 
         data[i] = textwrap.fill(data[i], 2)
         data[i] = data[i].split("\n")
 
         for j in data[i]:
-            if (count == size):
+            if (count == limit):
                 break
 
             binary = (int(j, 16) << 8 - n) % 256
