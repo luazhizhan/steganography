@@ -26,7 +26,7 @@ def encodeBits(cover: list, payload: list, n: int):
                 break
 
             cover[i][j] = hex(get_n_most_significant_bits(
-                int(cover[i][j], 16), 8-n) + int(payload.pop(0), 2))[2:].zfill(2)
+                int(cover[i][j], 16), n) + int(payload.pop(0), 2))[2:].zfill(2)
 
         cover[i] = "".join(cover[i])
     return cover
