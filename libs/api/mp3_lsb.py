@@ -37,7 +37,13 @@ def getSourceHexDump(data):
     data = hexdump.dump(data)
     data = data.replace(" ", "")
     data = data.split(sep="FFFBE264")
-    return data
+    if (len(data) < 10):
+        raise ValueError("File has an unsupported format, Ensure MP3 320kbps bitrate, 44100Hz, Joint Stereo On, Intensity Stereo On, Original copy of media. MP3 HEADER: FFFBE264")
+    
+    numFrames = len(data) - 1;
+    freeBytes = numFrames * len(data[1])
+    
+    return freeBytes, data
 
 
 def getPayloadBinList(payload, n: int):
@@ -57,8 +63,15 @@ def getPayloadBinList(payload, n: int):
 
 
 def encode(cover, payload, n):
-    cover = getSourceHexDump(cover)
+    freeBytes, cover = getSourceHexDump(cover)
     size, len, payload = getPayloadBinList(payload, n)
+    
+    if (size > freeBytes):
+        raise ValueError(
+            "Input file too large to hide, "
+            f"requires {size} free bytess, using {n}"
+        )
+    
     output = encodeBits(cover, payload, n)
     output = "FFFBE264".join(output)
     output = hexdump.restore(output)
