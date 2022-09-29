@@ -15,7 +15,7 @@ def catch_all(path):
     try:
         data = decodeAndBuild(file.read(),  int(num_lsb), int(recover_size))
         if mime_type == '':
-            return jsonify({"message": data.getvalue().decode('utf-8')})
+            return jsonify({"message": data.getvalue().decode('ascii')})
         else:
             return send_file(data, mimetype=mime_type)
     except ValueError as e:
