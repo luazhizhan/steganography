@@ -165,7 +165,7 @@ function Decode(): JSX.Element {
 
   const onPayloadSizeChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const size = ((): number | null => {
-      if (!e.target.value.trim()) return null
+      if (!e.target.value.match(/^[1-9][0-9]*$/g)) return null
       return parseInt(e.target.value)
     })()
     dispatch({ type: 'SET_PAYLOAD_SIZE', size })
@@ -174,6 +174,10 @@ function Decode(): JSX.Element {
   const decodeApiEndpoint = (mineType: SourceMimeTypes): string => {
     switch (mineType) {
       case 'image/png':
+        return 'from-image'
+      case 'image/jpg':
+        return 'from-image'
+      case 'image/jpeg':
         return 'from-image'
       case 'audio/wav':
         return 'from-wav'
@@ -334,18 +338,14 @@ function Decode(): JSX.Element {
           </button>
         </div>
 
-        {/* Payload size for audio wav source only */}
-        {state.source.mimeType.includes('audio') && (
-          <div>
-            <span>Size: </span>
-            <input
-              type="number"
-              step={1}
-              onChange={onPayloadSizeChange}
-              value={state.payload.size || 0}
-            />
-          </div>
-        )}
+        <div>
+          <span>Size: </span>
+          <input
+            type="text"
+            onChange={onPayloadSizeChange}
+            value={state.payload.size || ''}
+          />
+        </div>
         {/* Mime type selection  */}
         {state.payload.type === 'file' && !state.payload.data && (
           <div className={styles.form}>

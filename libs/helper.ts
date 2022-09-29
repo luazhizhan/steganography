@@ -4,7 +4,12 @@ export type Data = string | null
 
 export type NumData = number | null
 
-export type SourceMimeTypes = 'image/png' | 'audio/wav' | 'audio/mpeg'
+export type SourceMimeTypes =
+  | 'image/png'
+  | 'audio/wav'
+  | 'audio/mpeg'
+  | 'image/jpg'
+  | 'image/jpeg'
 
 export type Payloads = 'message' | 'file'
 
@@ -23,6 +28,8 @@ export type PayloadMimeTypes =
 export const acceptSource = {
   'image/png': [],
   'image/bmp': [],
+  'image/jpeg': [],
+  'image/jpg': [],
   'audio/wav': [],
   'audio/mpeg': [],
 }

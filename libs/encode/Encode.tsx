@@ -172,6 +172,10 @@ function Encode(): JSX.Element {
     switch (mineType) {
       case 'image/png':
         return 'to-image'
+      case 'image/jpg':
+        return 'to-image'
+      case 'image/jpeg':
+        return 'to-image'
       case 'audio/wav':
         return 'to-wav'
       case 'audio/mpeg':
