@@ -36,7 +36,7 @@ def encodeBits(cover: list, payload: list, n: int):
 def getSourceHexDump(data):
     data = hexdump.dump(data)
     data = data.replace(" ", "")
-    data = data.split(sep="FFFBA404")
+    data = data.split(sep="FFFBE264")
     return data
 
 
@@ -60,7 +60,7 @@ def encode(cover, payload, n):
     cover = getSourceHexDump(cover)
     size, len, payload = getPayloadBinList(payload, n)
     output = encodeBits(cover, payload, n)
-    output = "FFFBA404".join(output)
+    output = "FFFBE264".join(output)
     output = hexdump.restore(output)
 
     tmp = io.BytesIO()
@@ -72,7 +72,7 @@ def encode(cover, payload, n):
 def decodeAndBuild(cover, n, size):
     data = hexdump.dump(cover)
     data = data.replace(" ", "")
-    data = data.split(sep="FFFBA404")
+    data = data.split(sep="FFFBE264")
     limit = math.ceil(size*8/n);
 
     ans = ""
