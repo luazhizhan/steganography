@@ -72,7 +72,7 @@ def encode(cover, payload, n):
 def decodeAndBuild(cover, n, size):
     data = hexdump.dump(cover)
     data = data.replace(" ", "")
-    data = data.split(sep="FFFBA404")[0]
+    data = data.split(sep="FFFBA404")
     limit = math.ceil(size*8/n);
 
     ans = ""
