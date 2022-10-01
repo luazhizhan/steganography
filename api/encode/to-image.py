@@ -29,4 +29,4 @@ def catch_all(path):
     except ValueError as e:
         return make_response(jsonify({"message": str(e)}), 400)
     except:
-        return make_response(jsonify({"message": "Something went wrong"}), 400)
+        return jsonify({"message": 'Unable to encode image file.'}), 400
