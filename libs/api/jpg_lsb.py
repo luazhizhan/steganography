@@ -71,14 +71,17 @@ class Steganography:
         if (len(payload[-1]) != bitLength):
             payload[-1] = payload[-1].ljust(bitLength, "0")
             
-        print(payload)
-            
         pixelsToEdit = math.ceil(len(payload)/3)        
         # Get the pixel map of the two images
         
         height = cover.height
         width = cover.width
         pixel = cover.load()
+        
+        if (pixelsToEdit > height*width):
+            raise ValueError(
+            "Input file too large to hide"
+        )
         
         for i in range(width):
             if (not payload):
