@@ -2,6 +2,7 @@ import { ChangeEvent, useReducer } from 'react'
 import BitsSelect from '../components/BitsSelect'
 import Dropzone from '../components/Dropzone'
 import PayloadViewer from '../components/PayloadViewer'
+import SourceViewer from '../components/SourceViewer'
 import {
   acceptSource,
   Bits,
@@ -183,6 +184,8 @@ function Decode(): JSX.Element {
         return 'from-wav'
       case 'audio/mpeg':
         return 'from-mp3'
+      case 'text/plain':
+        return 'from-text'
     }
   }
 
@@ -285,18 +288,10 @@ function Decode(): JSX.Element {
         {state.source.data && (
           <div className={styles.images}>
             <div>
-              {state.source.mimeType.includes('image') && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={state.source.data} alt="Uploaded image" />
-              )}
-              {state.source.mimeType.includes('audio') && (
-                <audio controls>
-                  <source
-                    src={state.source.data}
-                    type={state.source.mimeType}
-                  />
-                </audio>
-              )}
+              <SourceViewer
+                data={state.source.data}
+                mime={state.source.mimeType}
+              />
             </div>
           </div>
         )}
@@ -361,6 +356,7 @@ function Decode(): JSX.Element {
               <option value={'image/jpeg'}>jpeg</option>
               <option value={'audio/wav'}>wav</option>
               <option value={'audio/mpeg'}>mp3</option>
+              <option value={'text/plain'}>txt</option>
               <option value={'application/pdf'}>pdf</option>
               <option
                 value={

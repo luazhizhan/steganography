@@ -2,6 +2,7 @@ import { ChangeEvent, useReducer } from 'react'
 import BitsSelect from '../components/BitsSelect'
 import Dropzone from '../components/Dropzone'
 import PayloadViewer from '../components/PayloadViewer'
+import SourceViewer from '../components/SourceViewer'
 import {
   acceptSource,
   Bits,
@@ -180,6 +181,8 @@ function Encode(): JSX.Element {
         return 'to-wav'
       case 'audio/mpeg':
         return 'to-mp3'
+      case 'text/plain':
+        return 'to-text'
     }
   }
 
@@ -277,9 +280,7 @@ function Encode(): JSX.Element {
         {/* Upload file payload */}
         {state.payload.type === 'file' && !state.payload.data && (
           <Dropzone
-            accept={{
-              any: ['.pdf', '.pptx', '.docx', '.xlsx', '.png', '.wav'],
-            }}
+            accept={{}}
             onDrop={(acceptedFiles) => {
               acceptedFiles.map((file) => {
                 const reader = new FileReader()
@@ -370,40 +371,20 @@ function Encode(): JSX.Element {
 
         {/* Original and encoded file comparison */}
         <div className={styles.sources}>
-          {state.source.original && (
-            <div>
-              <span>Original</span>
-              {state.source.mimeType.includes('image') && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={state.source.original} alt="Uploaded image" />
-              )}
-              {state.source.mimeType.includes('audio') && (
-                <audio controls>
-                  <source
-                    src={state.source.original}
-                    type={state.source.mimeType}
-                  />
-                </audio>
-              )}
-            </div>
-          )}
-          {state.source.encoded && (
-            <div>
-              <span>Encoded</span>
-              {state.source.mimeType.includes('image') && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={state.source.encoded} alt="Encoded image" />
-              )}
-              {state.source.mimeType.includes('audio') && (
-                <audio controls>
-                  <source
-                    src={state.source.encoded}
-                    type={state.source.mimeType}
-                  />
-                </audio>
-              )}
-            </div>
-          )}
+          <div>
+            {state.source.original && <span>Original</span>}
+            <SourceViewer
+              data={state.source.original}
+              mime={state.source.mimeType}
+            />
+          </div>
+          <div>
+            {state.source.encoded && <span>Encoded</span>}
+            <SourceViewer
+              data={state.source.encoded}
+              mime={state.source.mimeType}
+            />
+          </div>
         </div>
       </section>
     </div>

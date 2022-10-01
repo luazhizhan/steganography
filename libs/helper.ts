@@ -10,6 +10,7 @@ export type SourceMimeTypes =
   | 'audio/mpeg'
   | 'image/jpg'
   | 'image/jpeg'
+  | 'text/plain'
 
 export type Payloads = 'message' | 'file'
 
@@ -20,6 +21,7 @@ export type PayloadMimeTypes =
   | 'image/jpeg'
   | 'audio/wav'
   | 'audio/mpeg'
+  | 'text/plain'
   | 'application/pdf'
   | 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
   | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -32,6 +34,7 @@ export const acceptSource = {
   'image/jpg': [],
   'audio/wav': [],
   'audio/mpeg': [],
+  'text/plain': [],
 }
 
 export function payloadMimeTypeToExt(mimeType: PayloadMimeTypes): string {
@@ -42,6 +45,8 @@ export function payloadMimeTypeToExt(mimeType: PayloadMimeTypes): string {
       return 'jpg'
     case 'image/jpeg':
       return 'jpeg'
+    case 'text/plain':
+      return 'txt'
     case 'application/pdf':
       return 'pdf'
     case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
