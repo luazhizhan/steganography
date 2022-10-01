@@ -22,4 +22,4 @@ def catch_all(path):
         return make_response(jsonify({"message": str(e)}), 400)
     except Exception as e:
         print(e)
-        return make_response(jsonify({"message": "Something went wrong"}), 400)
+        return jsonify({"message": 'Unable to encode mp3 file.'}), 400

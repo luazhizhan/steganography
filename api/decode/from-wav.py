@@ -23,4 +23,4 @@ def catch_all(path):
         return jsonify({"message": str(e)}), 400
     except Exception as e:
         print(e)
-        return jsonify({"message": "Something went wrong"}), 400
+        return jsonify({"message": 'Unable to decode wav file.'}), 400
