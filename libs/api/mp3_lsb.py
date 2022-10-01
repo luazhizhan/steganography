@@ -69,7 +69,7 @@ def encode(cover, payload, n):
     if (size > freeBytes):
         raise ValueError(
             "Input file too large to hide, "
-            f"requires {size} free bytess, using {n}"
+            f"requires {size} free bytes, using {n}"
         )
     
     output = encodeBits(cover, payload, n)
