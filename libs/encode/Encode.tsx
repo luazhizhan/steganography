@@ -174,9 +174,9 @@ function Encode(): JSX.Element {
       case 'image/png':
         return 'to-image'
       case 'image/jpg':
-        return 'to-image'
+        return 'to-jpg'
       case 'image/jpeg':
-        return 'to-image'
+        return 'to-jpg'
       case 'audio/wav':
         return 'to-wav'
       case 'audio/mpeg':

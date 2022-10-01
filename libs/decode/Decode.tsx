@@ -177,9 +177,9 @@ function Decode(): JSX.Element {
       case 'image/png':
         return 'from-image'
       case 'image/jpg':
-        return 'from-image'
+        return 'from-jpg'
       case 'image/jpeg':
-        return 'from-image'
+        return 'from-jpg'
       case 'audio/wav':
         return 'from-wav'
       case 'audio/mpeg':
