@@ -2,10 +2,10 @@
 
 from io import BytesIO
 
+import pillow_jpls
 from flask import Flask, jsonify, make_response, request, send_file
 from libs.api.jpg_lsb import encodeInJpg
 from PIL import Image
-import pillow_jpls
 
 app = Flask(__name__)
 

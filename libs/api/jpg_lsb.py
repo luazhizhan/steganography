@@ -5,6 +5,7 @@ import sys
 import textwrap
 
 import hexdump
+import pillow_jpls
 from PIL import Image
 
 os.system("")
@@ -13,6 +14,7 @@ os.system("")
 def get_n_most_significant_bits(value, n):
     value = (value >> n) % 256
     return value << n
+
 
 class Steganography:
     # coverJPG.jpg
