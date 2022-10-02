@@ -1,4 +1,5 @@
 import DocViewer, { DocViewerRenderers } from '@cyntler/react-doc-viewer'
+import { memo } from 'react'
 
 type Props = {
   data: string
@@ -21,4 +22,9 @@ function Viewer(props: Props): JSX.Element {
   )
 }
 
-export default Viewer
+const MemoViewer = memo(
+  Viewer,
+  (prev: Props, next: Props) => prev.data === next.data
+)
+
+export default MemoViewer

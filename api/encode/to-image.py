@@ -18,11 +18,12 @@ def catch_all(path):
     payload_file = request.files.get('payload')
     try:
         image = Image.open(file)
+        image = image.convert('RGB') if image.format != 'PNG' else image
         payload = payload_file.read() if payload_form is None else payload_form
         image = hide_message_in_image(image, payload, int(num_lsb))
 
         img_io = BytesIO()
-        image.save(img_io, image.format, quality=100)
+        image.save(img_io, 'PNG')
         img_io.seek(0)
 
         return send_file(img_io, mimetype=file.mimetype)

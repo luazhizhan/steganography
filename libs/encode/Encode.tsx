@@ -11,7 +11,7 @@ import {
   NumData,
   PayloadMimeTypes,
   Payloads,
-  SourceMimeTypes,
+  SourceMimeTypes
 } from '../helper'
 import styles from './Encode.module.css'
 
@@ -174,9 +174,9 @@ function Encode(): JSX.Element {
       case 'image/png':
         return 'to-image'
       case 'image/jpg':
-        return 'to-jpg'
+        return 'to-image'
       case 'image/jpeg':
-        return 'to-jpg'
+        return 'to-image'
       case 'audio/wav':
         return 'to-wav'
       case 'audio/mpeg':
