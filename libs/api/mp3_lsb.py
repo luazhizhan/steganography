@@ -112,7 +112,7 @@ def decodeAndBuild(cover, n, size):
     ans = ans[:len(ans)-spill]
     ans = textwrap.fill(ans, 8)
     ans = ans.split("\n")
-    ans = [hex(int(i, 2))[2:] for i in ans]
+    ans = [hex(int(i, 2))[2:].zfill(2) for i in ans]
     ans = "".join(ans)
     ans = hexdump.restore(ans)
 

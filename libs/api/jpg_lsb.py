@@ -14,38 +14,9 @@ def get_n_most_significant_bits(value, n):
     value = (value >> n) % 256
     return value << n
 
-
-class style():
-    RED = '\033[31m'
-    GREEN = '\033[32m'
-
-
 class Steganography:
     # coverJPG.jpg
     # payloadJPG.jpg
-    BLACK_PIXEL = (0, 0, 0)
-
-    def _int_to_bin(self, rgb):
-        r, g, b = rgb
-        return f'{r:08b}', f'{g:08b}', f'{b:08b}'
-
-    def _bin_to_int(self, rgb):
-        r, g, b = rgb
-        return int(r, 2), int(g, 2), int(b, 2)
-
-    def encode_rgb(self, rgb1, rgb2, bitLength):
-        r1, g1, b1 = self._int_to_bin(rgb1)
-        r2, g2, b2 = self._int_to_bin(rgb2)
-        rgb = r1[:(8 - bitLength)] + r2[:bitLength], g1[:(8 - bitLength)] + g2[:bitLength], b1[:(8 - bitLength)] + b2[
-            :bitLength]
-        return self._bin_to_int(rgb)
-
-    def decode_rgb(self, rgb, rgb2, bitLength):
-        r, g, b = self._int_to_bin(rgb)
-        r2, g2, b2 = self._int_to_bin(rgb2)
-
-        new_rgb = r[8 - bitLength:], g[8 - bitLength:], b[8 - bitLength]
-        return self._bin_to_int(new_rgb)
 
     def encode(self, cover, payload, bitLength):
         """Merge image2 into image1.
