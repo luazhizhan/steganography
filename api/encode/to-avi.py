@@ -2,7 +2,7 @@
 from io import BytesIO
 
 from flask import Flask, jsonify, make_response, request, send_file
-
+from libs.api.avi_lsb import encode
 app = Flask(__name__)
 
 
@@ -14,8 +14,16 @@ def catch_all(path):
     payload_form = request.form.get('payload')
     payload_file = request.files.get('payload')
     try:
-        return send_file(BytesIO(file.read()), mimetype=file.mimetype)
+        payload = payload_file.read() if payload_form is None else str.encode(payload_form)  # reads payload
+        f = open("/tmp/source.avi", "wb")
+        f.write(file)
+        f.close()
+        # encode, return cover file.
+        encode("/tmp/source.avi", payload, int(num_lsb))
+        f = open("/tmp/output.avi", "rb")
+        return send_file(BytesIO(f.read()), mimetype=file.mimetype)
     except ValueError as e:
+        print(e)
         return make_response(jsonify({"message": str(e)}), 400)
     except:
-        return jsonify({"message": 'Unable to encode video file.'}), 400
+        return jsonify({"message": 'Unable to encode avi file.'}), 400

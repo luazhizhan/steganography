@@ -8,6 +8,7 @@ flask = "*"
 pillow = "*"
 numpy = "*"
 hexdump = "*"
+pillow-jpls = "*"
 
 [dev-packages]
 
