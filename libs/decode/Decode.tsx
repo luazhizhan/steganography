@@ -192,6 +192,8 @@ function Decode(): JSX.Element {
         return 'from-text'
       case 'video/x-msvideo':
         return 'from-avi'
+      case 'video/mp4':
+        return 'from-mp4'
     }
   }
 

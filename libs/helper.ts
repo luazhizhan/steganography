@@ -11,6 +11,7 @@ export type SourceMimeTypes =
   | 'image/bmp'
   | 'image/tiff'
   | 'video/x-msvideo'
+  | 'video/mp4'
   | 'audio/wav'
   | 'audio/mpeg'
   | 'text/plain'
@@ -25,6 +26,7 @@ export type PayloadMimeTypes =
   | 'image/bmp'
   | 'image/tiff'
   | 'video/x-msvideo'
+  | 'video/mp4'
   | 'audio/wav'
   | 'audio/mpeg'
   | 'text/plain'
@@ -42,6 +44,7 @@ export const acceptSource = {
   'audio/wav': [],
   'audio/mpeg': [],
   'video/x-msvideo': ['.avi'],
+  'video/mp4': ['.mp4'],
   'text/plain': [],
 }
 
@@ -73,6 +76,8 @@ export function payloadMimeTypeToExt(mimeType: PayloadMimeTypes): string {
       return 'mp3'
     case 'video/x-msvideo':
       return 'avi'
+    case 'video/mp4':
+      return 'mp4'
     default:
       return ''
   }

@@ -189,6 +189,8 @@ function Encode(): JSX.Element {
         return 'to-text'
       case 'video/x-msvideo':
         return 'to-avi'
+      case 'video/mp4':
+        return 'to-mp4'
     }
   }
 
