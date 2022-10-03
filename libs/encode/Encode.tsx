@@ -185,6 +185,8 @@ function Encode(): JSX.Element {
         return 'to-mp3'
       case 'text/plain':
         return 'to-text'
+      case 'video/x-msvideo':
+        return 'to-avi'
     }
   }
 

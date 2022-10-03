@@ -188,6 +188,8 @@ function Decode(): JSX.Element {
         return 'from-mp3'
       case 'text/plain':
         return 'from-text'
+      case 'video/x-msvideo':
+        return 'from-avi'
     }
   }
 
@@ -359,6 +361,7 @@ function Decode(): JSX.Element {
               <option value={'image/bmp'}>bmp</option>
               <option value={'audio/wav'}>wav</option>
               <option value={'audio/mpeg'}>mp3</option>
+              <option value={'video/x-msvideo'}>avi</option>
               <option value={'text/plain'}>txt</option>
               <option value={'application/pdf'}>pdf</option>
               <option

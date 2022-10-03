@@ -22,6 +22,15 @@ function SourceViewer(props: Props): JSX.Element {
     )
   }
 
+  // Video payload
+  if (mime.includes('video')) {
+    return (
+      <video controls>
+        <source src={data} type={mime} />
+      </video>
+    )
+  }
+
   // Other file viewer (images,pdf,html,etc)
   return <DocViewer data={data} style={style} />
 }
