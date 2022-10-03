@@ -12,7 +12,7 @@ import {
   PayloadMimeTypes,
   payloadMimeTypeToExt,
   Payloads,
-  SourceMimeTypes
+  SourceMimeTypes,
 } from '../helper'
 import styles from './Decode.module.css'
 
@@ -179,6 +179,8 @@ function Decode(): JSX.Element {
       case 'image/jpg':
         return 'from-image'
       case 'image/jpeg':
+        return 'from-image'
+      case 'image/bmp':
         return 'from-image'
       case 'audio/wav':
         return 'from-wav'
@@ -354,6 +356,7 @@ function Decode(): JSX.Element {
               <option value={'image/png'}>png</option>
               <option value={'image/jpg'}>jpg</option>
               <option value={'image/jpeg'}>jpeg</option>
+              <option value={'image/bmp'}>bmp</option>
               <option value={'audio/wav'}>wav</option>
               <option value={'audio/mpeg'}>mp3</option>
               <option value={'text/plain'}>txt</option>

@@ -6,10 +6,11 @@ export type NumData = number | null
 
 export type SourceMimeTypes =
   | 'image/png'
-  | 'audio/wav'
-  | 'audio/mpeg'
   | 'image/jpg'
   | 'image/jpeg'
+  | 'image/bmp'
+  | 'audio/wav'
+  | 'audio/mpeg'
   | 'text/plain'
 
 export type Payloads = 'message' | 'file'
@@ -19,6 +20,7 @@ export type PayloadMimeTypes =
   | 'image/png'
   | 'image/jpg'
   | 'image/jpeg'
+  | 'image/bmp'
   | 'audio/wav'
   | 'audio/mpeg'
   | 'text/plain'
@@ -45,6 +47,8 @@ export function payloadMimeTypeToExt(mimeType: PayloadMimeTypes): string {
       return 'jpg'
     case 'image/jpeg':
       return 'jpeg'
+    case 'image/bmp':
+      return 'bmp'
     case 'text/plain':
       return 'txt'
     case 'application/pdf':
