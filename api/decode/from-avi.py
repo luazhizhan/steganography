@@ -23,7 +23,7 @@ def catch_all(path):
         if mime_type == '':
             return jsonify({"message": data.getvalue().decode('utf-8')})
         else:
-            return send_file(BytesIO(""), mimetype=mime_type)
+            return send_file(data, mimetype=mime_type)
     except ValueError as e:
         return jsonify({"message": str(e)}), 400
     except:
