@@ -48,6 +48,10 @@ function PayloadViewer(props: Props): JSX.Element {
     )
   }
 
+  if (mime === 'image/tiff') {
+    return <span>{name}</span>
+  }
+
   // Other file viewer (images,pdf,html,etc)
   return <DocViewer data={data} />
 }

@@ -5,7 +5,6 @@ import PayloadViewer from '../components/PayloadViewer'
 import SourceViewer from '../components/SourceViewer'
 import {
   acceptSource,
-  API_URL,
   Bits,
   blobToBase64,
   Data,
@@ -13,7 +12,7 @@ import {
   PayloadMimeTypes,
   payloadMimeTypeToExt,
   Payloads,
-  SourceMimeTypes,
+  SourceMimeTypes
 } from '../helper'
 import styles from './Decode.module.css'
 
@@ -183,6 +182,8 @@ function Decode(): JSX.Element {
         return 'from-image'
       case 'image/bmp':
         return 'from-image'
+      case 'image/tiff':
+        return 'from-tiff'
       case 'audio/wav':
         return 'from-wav'
       case 'audio/mpeg':
@@ -211,10 +212,13 @@ function Decode(): JSX.Element {
       bodyData.append('mimeType', state.payload.mimeType || '')
       bodyData.append('recoverSize', state.payload.size?.toString() || '0')
       const endpoint = decodeApiEndpoint(state.source.mimeType)
-      const decodeRes = await fetch(`${API_URL}/api/decode/${endpoint}`, {
-        method: 'POST',
-        body: bodyData,
-      })
+      const decodeRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_PATH}api/decode/${endpoint}`,
+        {
+          method: 'POST',
+          body: bodyData,
+        }
+      )
 
       // Error in decoding
       if (!decodeRes.ok) {
@@ -360,6 +364,7 @@ function Decode(): JSX.Element {
               <option value={'image/jpg'}>jpg</option>
               <option value={'image/jpeg'}>jpeg</option>
               <option value={'image/bmp'}>bmp</option>
+              <option value={'image/tiff'}>tiff</option>
               <option value={'audio/wav'}>wav</option>
               <option value={'audio/mpeg'}>mp3</option>
               <option value={'video/x-msvideo'}>avi</option>

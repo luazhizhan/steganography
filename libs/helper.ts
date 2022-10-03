@@ -9,6 +9,7 @@ export type SourceMimeTypes =
   | 'image/jpg'
   | 'image/jpeg'
   | 'image/bmp'
+  | 'image/tiff'
   | 'video/x-msvideo'
   | 'audio/wav'
   | 'audio/mpeg'
@@ -22,6 +23,7 @@ export type PayloadMimeTypes =
   | 'image/jpg'
   | 'image/jpeg'
   | 'image/bmp'
+  | 'image/tiff'
   | 'video/x-msvideo'
   | 'audio/wav'
   | 'audio/mpeg'
@@ -31,13 +33,12 @@ export type PayloadMimeTypes =
   | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   | 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
-export const API_URL = 'http://localhost:5000'
-
 export const acceptSource = {
   'image/png': [],
   'image/bmp': [],
   'image/jpeg': [],
   'image/jpg': [],
+  'image/tiff': ['.tiff', '.tif'],
   'audio/wav': [],
   'audio/mpeg': [],
   'video/x-msvideo': ['.avi'],
@@ -54,6 +55,8 @@ export function payloadMimeTypeToExt(mimeType: PayloadMimeTypes): string {
       return 'jpeg'
     case 'image/bmp':
       return 'bmp'
+    case 'image/tiff':
+      return 'tiff'
     case 'text/plain':
       return 'txt'
     case 'application/pdf':

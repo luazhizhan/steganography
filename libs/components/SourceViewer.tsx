@@ -5,11 +5,12 @@ const DocViewer = lazy(() => import('./Viewer'))
 type Props = {
   mime: SourceMimeTypes
   data: Data
+  name: Data
   style?: React.CSSProperties
 }
 
 function SourceViewer(props: Props): JSX.Element {
-  const { data, mime, style } = props
+  const { data, mime, name, style } = props
 
   if (!data) return <></>
 
@@ -29,6 +30,10 @@ function SourceViewer(props: Props): JSX.Element {
         <source src={data} type={mime} />
       </video>
     )
+  }
+
+  if (mime === 'image/tiff') {
+    return <b>{name}</b>
   }
 
   // Other file viewer (images,pdf,html,etc)

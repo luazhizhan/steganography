@@ -5,7 +5,6 @@ import PayloadViewer from '../components/PayloadViewer'
 import SourceViewer from '../components/SourceViewer'
 import {
   acceptSource,
-  API_URL,
   Bits,
   blobToBase64,
   Data,
@@ -178,6 +177,8 @@ function Encode(): JSX.Element {
         return 'to-image'
       case 'image/jpeg':
         return 'to-image'
+      case 'image/tiff':
+        return 'to-tiff'
       case 'image/bmp':
         return 'to-image'
       case 'audio/wav':
@@ -219,10 +220,13 @@ function Encode(): JSX.Element {
       bodyData.append('file', file)
       bodyData.append('payload', payload)
       const endpoint = encodeApiEndpoint(state.source.mimeType)
-      const encodeRes = await fetch(`${API_URL}/api/encode/${endpoint}`, {
-        method: 'POST',
-        body: bodyData,
-      })
+      const encodeRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_PATH}api/encode/${endpoint}`,
+        {
+          method: 'POST',
+          body: bodyData,
+        }
+      )
 
       // Throw error if not 200
       if (!encodeRes.ok) {
@@ -379,6 +383,7 @@ function Encode(): JSX.Element {
           <div>
             {state.source.original && <span>Original</span>}
             <SourceViewer
+              name={state.source.name}
               data={state.source.original}
               mime={state.source.mimeType}
             />
@@ -386,6 +391,7 @@ function Encode(): JSX.Element {
           <div>
             {state.source.encoded && <span>Encoded</span>}
             <SourceViewer
+              name={`encoded-${state.source.name}`}
               data={state.source.encoded}
               mime={state.source.mimeType}
             />
