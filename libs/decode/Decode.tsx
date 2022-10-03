@@ -5,6 +5,7 @@ import PayloadViewer from '../components/PayloadViewer'
 import SourceViewer from '../components/SourceViewer'
 import {
   acceptSource,
+  API_URL,
   Bits,
   blobToBase64,
   Data,
@@ -210,7 +211,7 @@ function Decode(): JSX.Element {
       bodyData.append('mimeType', state.payload.mimeType || '')
       bodyData.append('recoverSize', state.payload.size?.toString() || '0')
       const endpoint = decodeApiEndpoint(state.source.mimeType)
-      const decodeRes = await fetch(`/api/decode/${endpoint}`, {
+      const decodeRes = await fetch(`${API_URL}/api/decode/${endpoint}`, {
         method: 'POST',
         body: bodyData,
       })

@@ -31,6 +31,8 @@ export type PayloadMimeTypes =
   | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   | 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
+export const API_URL = 'http://localhost:5000'
+
 export const acceptSource = {
   'image/png': [],
   'image/bmp': [],

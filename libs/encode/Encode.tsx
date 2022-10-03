@@ -5,6 +5,7 @@ import PayloadViewer from '../components/PayloadViewer'
 import SourceViewer from '../components/SourceViewer'
 import {
   acceptSource,
+  API_URL,
   Bits,
   blobToBase64,
   Data,
@@ -218,7 +219,7 @@ function Encode(): JSX.Element {
       bodyData.append('file', file)
       bodyData.append('payload', payload)
       const endpoint = encodeApiEndpoint(state.source.mimeType)
-      const encodeRes = await fetch(`/api/encode/${endpoint}`, {
+      const encodeRes = await fetch(`${API_URL}/api/encode/${endpoint}`, {
         method: 'POST',
         body: bodyData,
       })
