@@ -12,7 +12,7 @@ import {
   PayloadMimeTypes,
   payloadMimeTypeToExt,
   Payloads,
-  SourceMimeTypes
+  SourceMimeTypes,
 } from '../helper'
 import styles from './Decode.module.css'
 
@@ -298,6 +298,7 @@ function Decode(): JSX.Element {
           <div className={styles.images}>
             <div>
               <SourceViewer
+                name={state.source.name}
                 data={state.source.data}
                 mime={state.source.mimeType}
               />
